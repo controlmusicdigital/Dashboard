@@ -3,6 +3,7 @@ import { buildPrompt, parseGenerationJSON, ParsedGeneration } from "./prompt";
 import { Artist } from "../types";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
+const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 
 const RETRYABLE_STATUS = new Set([429, 503]);
@@ -76,6 +77,39 @@ export async function requestGeminiWithTools(promptText: string, tools: object[]
     : undefined;
   if (!text) throw new Error("Gemini no devolvio texto");
   return text;
+}
+
+export interface GeneratedImage {
+  mimeType: string;
+  base64: string;
+}
+
+export async function requestGeminiImage(promptText: string): Promise<GeneratedImage> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY no esta configurada");
+
+  const res = await fetchWithRetry(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: promptText }] }],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Gemini respondio ${res.status}: ${body.slice(0, 300)}`);
+  }
+
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts as { inlineData?: { mimeType?: string; data?: string } }[] | undefined;
+  const imagePart = parts?.find((p) => p.inlineData?.data);
+  if (!imagePart?.inlineData?.data) throw new Error("Gemini no devolvio una imagen");
+
+  return { mimeType: imagePart.inlineData.mimeType || "image/png", base64: imagePart.inlineData.data };
 }
 
 export async function requestChatGPTText(promptText: string): Promise<string> {

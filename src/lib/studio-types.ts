@@ -6,7 +6,7 @@ export interface GeneratedContent {
   caption: string;
   hashtags: string[];
   variants: Record<SocialPlatformId, string>;
-  source: AIProvider | "mock";
+  source: AIProvider | "mock" | "claude";
   note?: string;
 }
 

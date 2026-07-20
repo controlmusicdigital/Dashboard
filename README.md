@@ -59,6 +59,28 @@ para publicar de verdad hace falta autorizar cada cuenta por OAuth (Meta Graph A
 Instagram/Facebook, TikTok Content Posting API, YouTube Data API) y guardar esos tokens por
 artista; ese es el siguiente paso cuando quieran conectar cuentas reales.
 
+### Importar desde un enlace (Claude)
+
+En la misma pestana, "Importar desde un enlace" deja pegar un link (YouTube, TikTok, Instagram,
+un articulo) y usa Claude (`claude-opus-4-8` con la herramienta de busqueda/lectura web) para
+leerlo y armar un post inspirado en ese contenido, con el mismo formato que el resto del estudio.
+Usa `ANTHROPIC_API_KEY`; sin ella, muestra contenido de ejemplo. Sirve en `src/lib/claude/link-import.ts`.
+
+## YouTube Studio
+
+Pestana "YouTube Studio" por artista: una mini version del YouTube Studio real — lista de videos
+con miniatura, vistas/likes/comentarios, estado (Publico/No listado/Borrador) y fecha, mas un
+formulario para "subir" un video nuevo (titulo + archivo). La subida es **simulada** — igual que
+el resto del estudio, publicar de verdad requiere conectar la cuenta de YouTube por OAuth.
+
+## Comentarios (bandeja unificada)
+
+Pestana "Comentarios" (nivel general): todos los comentarios de Instagram, TikTok, Facebook, X y
+YouTube de los tres artistas y de El sello, en un solo lugar, cada uno etiquetado con la red y el
+artista de origen. Filtra por artista/sello, por red social, o busca por texto/usuario; el boton
+"Responder" simula una respuesta (se guarda solo en esta sesion del navegador) y queda registrada
+en la actividad de "Mi equipo".
+
 ## Chatbot por artista (Claude Opus 4.8)
 
 Cada artista tiene una pestana "Chat con &lt;artista&gt;" — un chatbot que responde en el

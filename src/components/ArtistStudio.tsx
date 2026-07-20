@@ -55,6 +55,9 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
+  const [linkUrl, setLinkUrl] = useState("");
+  const [importingLink, setImportingLink] = useState(false);
+
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<SocialPlatformId>>(new Set(STUDIO_PLATFORMS));
   const [publishStatuses, setPublishStatuses] = useState<Record<SocialPlatformId, PublishState>>({
     instagram: "idle",
@@ -131,6 +134,34 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       setError(err instanceof Error ? err.message : "No se pudo generar el contenido");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleImportLink() {
+    if (!linkUrl.trim()) {
+      setError("Pega un enlace para analizar.");
+      return;
+    }
+    setImportingLink(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/import-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artistId: artist.id, url: linkUrl.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "No se pudo analizar el enlace");
+      const content = data as GeneratedContent;
+      setGenerated(content);
+      setCaption(content.caption);
+      setHashtags(content.hashtags.join(" "));
+      setVariants(content.variants);
+      setActiveVariant("instagram");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo analizar el enlace");
+    } finally {
+      setImportingLink(false);
     }
   }
 
@@ -331,6 +362,33 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
                 {error}
               </p>
             )}
+          </div>
+
+          <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
+            <h3 className="mb-1 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+              Importar desde un enlace
+            </h3>
+            <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+              Pega un link (YouTube, TikTok, Instagram, un articulo...) y Claude lo lee y arma un post inspirado en
+              ese contenido.
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://..."
+                className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
+              />
+              <button
+                onClick={handleImportLink}
+                disabled={importingLink}
+                className="flex-shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
+                style={{ backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }}
+              >
+                {importingLink ? "Analizando..." : "Analizar con Claude"}
+              </button>
+            </div>
           </div>
 
           {generated && (

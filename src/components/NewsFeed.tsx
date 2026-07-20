@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { NewsItem } from "@/lib/news-types";
+import { newsThumbnail } from "@/lib/news-thumb";
+import { PlatformIcon } from "@/lib/platforms";
+import { SHARE_PLATFORMS, buildShare } from "@/lib/share";
+import { logActivity } from "@/lib/team";
 
 const REFRESH_MS = 60 * 60 * 1000; // 1 hour
 
@@ -128,23 +132,30 @@ export function NewsFeed() {
         {items.map((item, i) => (
           <article
             key={i}
-            className="flex flex-col gap-2 rounded-2xl p-5"
+            className="flex flex-col gap-3 rounded-2xl"
             style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
           >
-            <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-              {item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                  {item.title}
-                </a>
-              ) : (
-                item.title
-              )}
-            </h3>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              {item.summary}
-            </p>
-            <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-              {item.source} · {item.publishedAt}
+            {/* eslint-disable-next-line @next/next/no-img-element -- generated data-URI thumbnail, not an optimizable remote asset */}
+            <img src={newsThumbnail(item.title)} alt="" className="h-32 w-full rounded-t-2xl object-cover" />
+            <div className="flex flex-col gap-2 px-5 pb-5">
+              <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {item.title}
+                  </a>
+                ) : (
+                  item.title
+                )}
+              </h3>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                {item.summary}
+              </p>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {item.source} · {item.publishedAt}
+                </div>
+                <ShareMenu item={item} />
+              </div>
             </div>
           </article>
         ))}
@@ -154,6 +165,64 @@ export function NewsFeed() {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+function ShareMenu({ item }: { item: NewsItem }) {
+  const [open, setOpen] = useState(false);
+  const [copiedNote, setCopiedNote] = useState<string | null>(null);
+
+  async function handleShare(platform: (typeof SHARE_PLATFORMS)[number]) {
+    const link = item.url || "https://controlmusicdigital.com";
+    const target = buildShare(platform, item.title, link);
+    if (target.kind === "link") {
+      window.open(target.url, "_blank", "noopener,noreferrer");
+    } else {
+      try {
+        await navigator.clipboard.writeText(target.text);
+        setCopiedNote(`Texto copiado — pegalo en la app de ${platform === "instagram" ? "Instagram" : "TikTok"}.`);
+      } catch {
+        setCopiedNote("No se pudo copiar automaticamente.");
+      }
+      setTimeout(() => setCopiedNote(null), 4000);
+    }
+    logActivity(`compartio una noticia en ${platform === "x" ? "X" : platform}`, "news", "Noticias", item.title.slice(0, 60));
+    setOpen(false);
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="rounded-full px-3 py-1.5 text-xs font-semibold"
+        style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
+      >
+        Compartir
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 z-10 mt-2 flex flex-col gap-1 rounded-xl p-2"
+          style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", minWidth: 160 }}
+        >
+          {SHARE_PLATFORMS.map((p) => (
+            <button
+              key={p}
+              onClick={() => handleShare(p)}
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:opacity-80"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <PlatformIcon platform={p} />
+              {p === "x" ? "X" : p[0].toUpperCase() + p.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+      {copiedNote && (
+        <p className="absolute right-0 mt-1 w-48 text-right text-[11px]" style={{ color: "var(--status-good)" }}>
+          {copiedNote}
+        </p>
+      )}
     </div>
   );
 }

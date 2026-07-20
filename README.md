@@ -104,6 +104,13 @@ aparte, solo `ANTHROPIC_API_KEY`.
   nunca noticias inventadas sobre terceros reales) con la etiqueta "Datos de ejemplo".
 - La busqueda ocurre en `src/lib/claude/news.ts` (servidor); la llave nunca llega al
   navegador.
+- Cada titular tiene una imagen ilustrativa generada (no es una foto real extraida del
+  articulo — Claude no confirma que exista una imagen real asociada, asi que preferimos un
+  thumbnail decorativo consistente antes que arriesgar una imagen rota o incorrecta).
+- Boton "Compartir" por titular: para X y Facebook abre su enlace real de "compartir"
+  (`intent/tweet` y `sharer.php`) en una pestana nueva — no hace falta conectar cuenta.
+  Instagram y TikTok no tienen un enlace de compartir desde la web, asi que copiamos el
+  titular + link al portapapeles para pegarlo en la app.
 
 ## Conexiones (por artista y para el sello)
 

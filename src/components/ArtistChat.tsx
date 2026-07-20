@@ -55,14 +55,13 @@ export function ArtistChat({ artist }: { artist: Artist }) {
     setSending(true);
 
     if (STATIC_DEMO) {
+      const note = "Demo estatica — el chat con Claude necesita la app completa con servidor.";
       setMessages((prev) => {
         const copy = [...prev];
-        copy[copy.length - 1] = {
-          role: "assistant",
-          content: "Demo estatica — el chat con Claude necesita la app completa con servidor.",
-        };
+        copy[copy.length - 1] = { role: "assistant", content: note };
         return copy;
       });
+      if (autoSpeak) speak(note, VOICE_LANG);
       setSending(false);
       return;
     }
@@ -160,7 +159,9 @@ export function ArtistChat({ artist }: { artist: Artist }) {
             <p className="text-sm">Escribele a {artist.name} como si fueras un fan o el equipo del sello.</p>
             {connected === false && (
               <p className="max-w-xs text-xs">
-                Sin ANTHROPIC_API_KEY configurada todavia — las respuestas son de ejemplo.
+                {STATIC_DEMO
+                  ? "Demo estatica (GitHub Pages) — el chat en vivo necesita la app completa con servidor."
+                  : "Sin ANTHROPIC_API_KEY configurada todavia — las respuestas son de ejemplo."}
               </p>
             )}
           </div>

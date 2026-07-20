@@ -86,8 +86,8 @@ export function FuturisticKpiCard({
       <span className="relative text-xs" style={{ color: "var(--text-muted)" }}>
         {label}
       </span>
-      <div className="relative flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="font-hud-mono text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+      <div className="relative flex min-w-0 flex-col items-start gap-1">
+        <span className="font-hud-mono min-w-0 max-w-full truncate text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
           <AnimatedCounter value={raw} format={format} />
         </span>
         {deltaPct !== 0 && (

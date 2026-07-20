@@ -32,8 +32,8 @@ export function PlatformCard({ snapshot }: { snapshot: PlatformSnapshot }) {
         )}
       </div>
 
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-2xl font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
+      <div className="flex min-w-0 flex-col items-start gap-1">
+        <span className="min-w-0 max-w-full truncate text-2xl font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
           {snapshot.headline.value}
         </span>
         <DeltaBadge deltaPct={snapshot.headline.deltaPct} />

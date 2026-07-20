@@ -146,7 +146,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
             height: 520,
             width: "min(92vw, 384px)",
             maxHeight: "calc(100vh - 8rem)",
-            backgroundColor: "var(--surface-1)",
+            backgroundColor: "rgba(6, 10, 22, 0.97)",
             borderColor: "var(--border-hairline)",
             color: "var(--text-primary)",
           }}
@@ -184,7 +184,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
                       key={q}
                       onClick={() => send(q)}
                       className="rounded-full border px-3 py-1.5 text-left text-[13px]"
-                      style={{ borderColor: "var(--border-hairline)", backgroundColor: "var(--surface-2)", color: "var(--text-secondary)" }}
+                      style={{ borderColor: "var(--border-hairline)", backgroundColor: "rgba(21, 30, 53, 0.92)", color: "var(--text-secondary)" }}
                     >
                       {q}
                     </button>
@@ -200,7 +200,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
                     style={
                       t.role === "user"
                         ? { background: "linear-gradient(135deg, var(--accent-cyan), var(--accent-blue-dr))", color: "#04121a" }
-                        : { backgroundColor: "var(--surface-2)", color: "var(--text-primary)" }
+                        : { backgroundColor: "rgba(21, 30, 53, 0.92)", color: "var(--text-primary)" }
                     }
                   >
                     {t.content || (busy && i === turns.length - 1 ? "…" : "")}
@@ -224,7 +224,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
               }}
               placeholder="Consulta al nucleo neural..."
               className="flex-1 rounded-xl border px-3 py-2 text-[15px] outline-none"
-              style={{ borderColor: "var(--border-hairline)", backgroundColor: "var(--surface-2)", color: "var(--text-primary)" }}
+              style={{ borderColor: "var(--border-hairline)", backgroundColor: "rgba(21, 30, 53, 0.92)", color: "var(--text-primary)" }}
             />
             <button
               onClick={() => send(input)}

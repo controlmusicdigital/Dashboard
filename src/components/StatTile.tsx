@@ -25,8 +25,8 @@ export function StatTile({ label, value, deltaPct }: { label: string; value: str
       <span className="text-xs" style={{ color: "var(--text-muted)" }}>
         {label}
       </span>
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-lg font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
+      <div className="flex min-w-0 flex-col items-start gap-1">
+        <span className="min-w-0 max-w-full truncate text-lg font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
           {value}
         </span>
         <DeltaBadge deltaPct={deltaPct} />

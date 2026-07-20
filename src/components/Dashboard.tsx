@@ -6,8 +6,9 @@ import { getAllArtistData } from "@/lib/mock-data";
 import { Overview } from "./Overview";
 import { ArtistView } from "./ArtistView";
 import { ThemeToggle } from "./ThemeToggle";
+import { NewsFeed } from "./NewsFeed";
 
-type View = "overview" | string;
+type View = "overview" | "news" | string;
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -43,6 +44,9 @@ export function Dashboard() {
         <TabButton active={view === "overview"} onClick={() => setView("overview")}>
           Resumen general
         </TabButton>
+        <TabButton active={view === "news"} onClick={() => setView("news")}>
+          Noticias
+        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -53,13 +57,15 @@ export function Dashboard() {
       <main>
         {view === "overview" ? (
           <Overview dataList={dataList} onSelectArtist={setView} />
+        ) : view === "news" ? (
+          <NewsFeed />
         ) : (
           <ArtistView data={allData[view]} />
         )}
       </main>
 
       <footer className="mt-6 border-t pt-4 text-xs" style={{ borderColor: "var(--border-hairline)", color: "var(--text-muted)" }}>
-        Conecta Google Ads, YouTube, Spotify, DistroKid, Instagram, TikTok y Facebook con credenciales reales para
+        Conecta Google Ads, YouTube, Spotify, DistroKid, Instagram, TikTok, Facebook y X con credenciales reales para
         reemplazar los datos de ejemplo por metricas en vivo.
       </footer>
     </div>

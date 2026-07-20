@@ -33,6 +33,7 @@ export function generateMockContent(artist: Artist, userPrompt: string): Generat
       tiktok: `${topic} 👀 ${emoji} #parati #${artist.name.replace(/\s+/g, "")}`,
       facebook: `${artist.name} comparte: ${topic}. Sigue todo el movimiento de Control Music Digital.`,
       youtube: `${artist.name} - ${topic} | Control Music Digital`,
+      x: `${topic} ${emoji} #${artist.name.replace(/\s+/g, "")}`,
     },
     source: "mock",
     note: "Generado con datos de ejemplo porque no hay una API key configurada para este proveedor.",

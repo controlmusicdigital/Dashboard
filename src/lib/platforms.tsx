@@ -8,6 +8,7 @@ export const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   instagram: { id: "instagram", label: "Instagram", category: "social", brandColor: "#E1306C" },
   tiktok: { id: "tiktok", label: "TikTok", category: "social", brandColor: "#25F4EE" },
   facebook: { id: "facebook", label: "Facebook", category: "social", brandColor: "#1877F2" },
+  x: { id: "x", label: "X", category: "social", brandColor: "#71767B" },
 };
 
 export const PLATFORM_ORDER: PlatformId[] = [
@@ -16,6 +17,7 @@ export const PLATFORM_ORDER: PlatformId[] = [
   "instagram",
   "tiktok",
   "facebook",
+  "x",
   "googleAds",
   "distrokid",
 ];
@@ -109,6 +111,14 @@ export function PlatformIcon({ platform, className }: { platform: PlatformId; cl
           <svg {...svgProps}>
             <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
             <path d="M13.6 20V13h2.1l.3-2.6h-2.4V8.8c0-.75.2-1.26 1.28-1.26h1.37V5.2c-.24-.03-1.05-.1-2-.1-1.98 0-3.33 1.2-3.33 3.42v1.88H8.8V13h2.17v7z" />
+          </svg>
+        </IconWrap>
+      );
+    case "x":
+      return (
+        <IconWrap color={color}>
+          <svg {...svgProps}>
+            <path d="M4 4l16 16M20 4L4 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
           </svg>
         </IconWrap>
       );

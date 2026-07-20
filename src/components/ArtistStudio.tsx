@@ -5,7 +5,7 @@ import { Artist } from "@/lib/types";
 import { AIProvider, GeneratedContent, PublishState, SocialPlatformId } from "@/lib/studio-types";
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 
-const STUDIO_PLATFORMS: SocialPlatformId[] = ["instagram", "tiktok", "facebook", "youtube"];
+const STUDIO_PLATFORMS: SocialPlatformId[] = ["instagram", "tiktok", "facebook", "youtube", "x"];
 
 const ASPECTS: { id: string; label: string; className: string }[] = [
   { id: "1:1", label: "Feed 1:1", className: "aspect-square" },
@@ -41,6 +41,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
     tiktok: "",
     facebook: "",
     youtube: "",
+    x: "",
   });
   const [activeVariant, setActiveVariant] = useState<SocialPlatformId>("instagram");
 
@@ -58,6 +59,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
     tiktok: "idle",
     facebook: "idle",
     youtube: "idle",
+    x: "idle",
   });
   const [publishing, setPublishing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);

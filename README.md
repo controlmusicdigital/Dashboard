@@ -2,7 +2,7 @@
 
 Panel en Next.js para el sello Control Music Digital (Republica Dominicana), con metricas
 de Pacheman, Max y El Real Soprano en un solo lugar: Spotify, YouTube, Instagram, TikTok,
-Facebook, Google Ads y DistroKid.
+Facebook, X, Google Ads y DistroKid.
 
 ## Estado actual
 
@@ -39,8 +39,8 @@ npm run lint    # eslint
 ## Estudio de contenido (Gemini / ChatGPT)
 
 Cada artista tiene una pestana "Estudio de contenido" (dentro de su pagina, pestana junto a
-"Metricas") para redactar un post con ayuda de IA y enviarlo a Instagram, TikTok, Facebook y
-YouTube.
+"Metricas") para redactar un post con ayuda de IA y enviarlo a Instagram, TikTok, Facebook,
+YouTube y X.
 
 Para activar la generacion real con tu propia cuenta:
 
@@ -78,13 +78,32 @@ El chat tambien soporta voz en el navegador (sin API extra): microfono para dict
 y boton de bocina para escuchar cada respuesta, usando el Web Speech API nativo del navegador
 (Chromium). Si el navegador no lo soporta, esos botones simplemente no aparecen.
 
-## Campanas publicitarias (Google Ads, Instagram, TikTok, Facebook, YouTube)
+## Campanas publicitarias (Google Ads, Instagram, TikTok, Facebook, YouTube, X)
 
 Pestana "Campanas" por artista: arma una campana (objetivo, plataformas, presupuesto, fechas,
 audiencia), genera el copy publicitario con Gemini o ChatGPT, y la pasa a "borrador". El boton
 "Activar" hoy la marca como activa de forma **simulada** — publicarla de verdad en cada
 plataforma requiere las cuentas de Google Ads / Meta Ads / TikTok Ads conectadas por API,
 igual que el resto de integraciones pendientes.
+
+## Noticias y farandula (Claude + busqueda web)
+
+Pestana "Noticias" (nivel sello, junto a "Resumen general"): busca titulares recientes de la
+industria musical y farandula de Republica Dominicana usando Claude (`claude-opus-4-8`) con la
+herramienta de busqueda web integrada de la API — sin necesitar una API key de noticias
+aparte, solo `ANTHROPIC_API_KEY`.
+
+- Se actualiza sola cada hora mientras el panel este abierto en el navegador, y tiene un
+  boton "Actualizar ahora" para forzar una busqueda.
+- Boton "Activar notificaciones" pide permiso de notificaciones del navegador; una vez
+  concedido, cada actualizacion (automatica o manual) dispara una notificacion del sistema
+  con el numero de titulares nuevos. Esto es una notificacion de navegador — solo funciona
+  mientras el panel sigue abierto en una pestana, no es una notificacion push en segundo
+  plano ni llega al celular sin el navegador abierto.
+- Sin `ANTHROPIC_API_KEY`, muestra titulares de ejemplo (basados en nuestro propio roster,
+  nunca noticias inventadas sobre terceros reales) con la etiqueta "Datos de ejemplo".
+- La busqueda ocurre en `src/lib/claude/news.ts` (servidor); la llave nunca llega al
+  navegador.
 
 ## Proximos pasos para datos en vivo
 

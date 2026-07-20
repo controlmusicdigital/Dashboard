@@ -1,4 +1,4 @@
-export type CampaignPlatformId = "googleAds" | "instagram" | "tiktok" | "facebook" | "youtube";
+export type CampaignPlatformId = "googleAds" | "instagram" | "tiktok" | "facebook" | "youtube" | "x";
 
 export type CampaignObjective = "reconocimiento" | "trafico" | "conversiones" | "streams";
 

@@ -17,6 +17,7 @@ export function mockAdContent(brief: AdBrief): AdContent {
       tiktok: `${topic} 👀 ${cta}`,
       facebook: `${artist.name} presenta: ${topic}. ${description}`,
       youtube: `${topic} — ${cta}`,
+      x: `${topic} — ${cta} 👉`,
     },
     source: "mock",
     note: "Generado con datos de ejemplo porque no hay una API key configurada para este proveedor.",

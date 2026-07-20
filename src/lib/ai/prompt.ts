@@ -16,7 +16,8 @@ Responde UNICAMENTE con un objeto JSON valido (sin markdown, sin backticks) con 
     "instagram": "version para Instagram, calida, puede tener saltos de linea y emojis",
     "tiktok": "version para TikTok, corta, directa, con gancho en la primera frase",
     "facebook": "version para Facebook, un poco mas descriptiva/informativa",
-    "youtube": "titulo + descripcion corta estilo YouTube Shorts, en una sola linea"
+    "youtube": "titulo + descripcion corta estilo YouTube Shorts, en una sola linea",
+    "x": "version para X, muy corta y directa, maximo 280 caracteres"
   }
 }`;
 }
@@ -29,6 +30,7 @@ export interface ParsedGeneration {
     tiktok: string;
     facebook: string;
     youtube: string;
+    x: string;
   };
 }
 
@@ -46,7 +48,8 @@ export function parseGenerationJSON(raw: string): ParsedGeneration {
     typeof parsed.variants.instagram !== "string" ||
     typeof parsed.variants.tiktok !== "string" ||
     typeof parsed.variants.facebook !== "string" ||
-    typeof parsed.variants.youtube !== "string"
+    typeof parsed.variants.youtube !== "string" ||
+    typeof parsed.variants.x !== "string"
   ) {
     throw new Error("Forma de JSON inesperada");
   }

@@ -27,7 +27,8 @@ Responde UNICAMENTE con un objeto JSON valido (sin markdown, sin backticks) con 
     "instagram": "copy para anuncio de Instagram, calido y visual, con emojis moderados",
     "tiktok": "copy para anuncio de TikTok, muy corto y con gancho inmediato",
     "facebook": "copy para anuncio de Facebook, un poco mas descriptivo",
-    "youtube": "copy para anuncio pre-roll de YouTube, una frase de gancho + CTA"
+    "youtube": "copy para anuncio pre-roll de YouTube, una frase de gancho + CTA",
+    "x": "copy para anuncio de X, muy corto y directo, maximo 280 caracteres"
   }
 }`;
 }
@@ -42,6 +43,7 @@ export interface ParsedAd {
     tiktok: string;
     facebook: string;
     youtube: string;
+    x: string;
   };
 }
 
@@ -61,7 +63,8 @@ export function parseAdJSON(raw: string): ParsedAd {
     typeof parsed.variants.instagram !== "string" ||
     typeof parsed.variants.tiktok !== "string" ||
     typeof parsed.variants.facebook !== "string" ||
-    typeof parsed.variants.youtube !== "string"
+    typeof parsed.variants.youtube !== "string" ||
+    typeof parsed.variants.x !== "string"
   ) {
     throw new Error("Forma de JSON inesperada");
   }

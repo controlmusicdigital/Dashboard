@@ -5,7 +5,8 @@ export type PlatformId =
   | "distrokid"
   | "instagram"
   | "tiktok"
-  | "facebook";
+  | "facebook"
+  | "x";
 
 export type PlatformCategory = "publicidad" | "streaming" | "distribucion" | "social";
 

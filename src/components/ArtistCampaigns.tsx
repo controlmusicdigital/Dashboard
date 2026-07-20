@@ -14,7 +14,7 @@ import {
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { formatUSD } from "@/lib/format";
 
-const CAMPAIGN_PLATFORMS: CampaignPlatformId[] = ["googleAds", "instagram", "tiktok", "facebook", "youtube"];
+const CAMPAIGN_PLATFORMS: CampaignPlatformId[] = ["googleAds", "instagram", "tiktok", "facebook", "youtube", "x"];
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
 
 function providerLabel(p: AIProvider) {

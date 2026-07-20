@@ -38,6 +38,7 @@ interface Base {
   igFollowers: number;
   ttFollowers: number;
   fbFollowers: number;
+  xFollowers: number;
   adsSpend: number;
   distroRevenue: number;
 }
@@ -48,6 +49,7 @@ const BASE: Base = {
   igFollowers: 520_000,
   ttFollowers: 340_000,
   fbFollowers: 150_000,
+  xFollowers: 95_000,
   adsSpend: 3_200,
   distroRevenue: 5_400,
 };
@@ -177,6 +179,30 @@ function buildFacebook(rng: () => number, mult: number): PlatformSnapshot {
   };
 }
 
+function buildX(rng: () => number, mult: number): PlatformSnapshot {
+  const followers = BASE.xFollowers * mult * randRange(rng, 0.7, 1.3);
+  const impressions30d = followers * randRange(rng, 3.5, 7);
+  const engagementRate = randRange(rng, 1.2, 3.8);
+  const delta = randRange(rng, -4, 12);
+  return {
+    platform: "x",
+    connected: true,
+    headline: { label: "Seguidores", value: formatCompact(followers), deltaPct: delta, raw: followers },
+    stats: [
+      { label: "Impresiones (30d)", value: formatCompact(impressions30d), deltaPct: randRange(rng, -6, 20) },
+      { label: "Interaccion", value: formatPct(engagementRate), deltaPct: randRange(rng, -8, 8) },
+      { label: "Publicaciones (30d)", value: formatInt(randRange(rng, 15, 40)), deltaPct: 0 },
+    ],
+    series: series(rng, impressions30d / 30, 0.28, delta),
+    seriesLabel: "Impresiones por dia",
+    topItems: TRACK_NAMES.slice(1, 5).map((t) => ({
+      title: `Post: ${t}`,
+      metricLabel: "impresiones",
+      metricValue: formatCompact(impressions30d * randRange(rng, 0.05, 0.2)),
+    })),
+  };
+}
+
 function buildGoogleAds(rng: () => number, mult: number): PlatformSnapshot {
   const spend = BASE.adsSpend * mult * randRange(rng, 0.6, 1.5);
   const impressions = spend * randRange(rng, 850, 1400);
@@ -243,6 +269,8 @@ function buildPlatform(id: PlatformId, artistId: string, rng: () => number, mult
       return buildTiktok(rng, mult);
     case "facebook":
       return buildFacebook(rng, mult);
+    case "x":
+      return buildX(rng, mult);
     case "googleAds":
       return buildGoogleAds(rng, mult);
     case "distrokid":
@@ -250,7 +278,7 @@ function buildPlatform(id: PlatformId, artistId: string, rng: () => number, mult
   }
 }
 
-const PLATFORM_IDS: PlatformId[] = ["spotify", "youtube", "instagram", "tiktok", "facebook", "googleAds", "distrokid"];
+const PLATFORM_IDS: PlatformId[] = ["spotify", "youtube", "instagram", "tiktok", "facebook", "x", "googleAds", "distrokid"];
 
 function buildArtistData(artistId: string): ArtistData {
   const artist = artists.find((a) => a.id === artistId)!;

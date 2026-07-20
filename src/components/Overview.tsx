@@ -10,6 +10,7 @@ const AUDIENCE_PLATFORMS = [
   { id: "instagram" as const, label: "Instagram" },
   { id: "tiktok" as const, label: "TikTok" },
   { id: "facebook" as const, label: "Facebook" },
+  { id: "x" as const, label: "X" },
 ];
 
 export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[]; onSelectArtist: (id: string) => void }) {
@@ -21,7 +22,8 @@ export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[];
     (d) =>
       (d.platforms.instagram.headline.raw ?? 0) +
       (d.platforms.tiktok.headline.raw ?? 0) +
-      (d.platforms.facebook.headline.raw ?? 0)
+      (d.platforms.facebook.headline.raw ?? 0) +
+      (d.platforms.x.headline.raw ?? 0)
   );
   const totalAdsSpend = sum((d) => d.platforms.googleAds.headline.raw ?? 0);
   const totalDistroRevenue = sum((d) => d.platforms.distrokid.headline.raw ?? 0);

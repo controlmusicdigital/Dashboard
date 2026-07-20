@@ -1,6 +1,6 @@
 export type AIProvider = "gemini" | "chatgpt";
 
-export type SocialPlatformId = "instagram" | "tiktok" | "facebook" | "youtube";
+export type SocialPlatformId = "instagram" | "tiktok" | "facebook" | "youtube" | "x";
 
 export interface GeneratedContent {
   caption: string;

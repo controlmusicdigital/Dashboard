@@ -1,0 +1,61 @@
+name: Deploy static demo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/control-music-artist-dashboard-xih0bk
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # GitHub Pages only serves static files and can't run the Next.js API routes
+      # this app uses for real AI generation, messaging, and file storage. This removes
+      # them from the ephemeral CI checkout only — the tracked source in the repo is untouched.
+      - name: Strip server API routes for static export
+        run: rm -rf src/app/api
+
+      - name: Build static export
+        env:
+          STATIC_EXPORT: "true"
+          NEXT_PUBLIC_STATIC_DEMO: "true"
+          GITHUB_PAGES_BASE_PATH: /Dashboard
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

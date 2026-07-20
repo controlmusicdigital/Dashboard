@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Artist } from "@/lib/types";
 import { speak, speechSupported, stopSpeaking, useSpeechInput } from "@/lib/useSpeech";
+import { STATIC_DEMO } from "@/lib/static-demo";
 
 const VOICE_LANG = "es-DO";
 
@@ -30,6 +31,11 @@ export function ArtistChat({ artist }: { artist: Artist }) {
   }, []);
 
   useEffect(() => {
+    if (STATIC_DEMO) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
+      setConnected(false);
+      return;
+    }
     fetch("/api/chat/status")
       .then((r) => r.json())
       .then((d) => setConnected(Boolean(d.claude)))
@@ -47,6 +53,19 @@ export function ArtistChat({ artist }: { artist: Artist }) {
     const nextMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
     setMessages([...nextMessages, { role: "assistant", content: "" }]);
     setSending(true);
+
+    if (STATIC_DEMO) {
+      setMessages((prev) => {
+        const copy = [...prev];
+        copy[copy.length - 1] = {
+          role: "assistant",
+          content: "Demo estatica — el chat con Claude necesita la app completa con servidor.",
+        };
+        return copy;
+      });
+      setSending(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/chat", {

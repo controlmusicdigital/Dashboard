@@ -25,6 +25,29 @@ npm run build   # build de produccion
 npm run lint    # eslint
 ```
 
+## Demo estatica en GitHub Pages
+
+Ademas de la app completa (con servidor, arriba), el repo incluye un workflow
+(`.github/workflows/deploy-pages.yml`) que publica una demo estatica de solo lectura en
+GitHub Pages en cada push a esta rama: `https://controlmusicdigital.github.io/Dashboard/`.
+
+GitHub Pages solo sirve archivos estaticos y no puede correr las rutas API de Next.js que
+usa esta app para generar contenido con IA de verdad, mandar mensajes por Telegram/WhatsApp,
+o guardar archivos subidos. Por eso el workflow:
+
+1. Quita `src/app/api` **solo de la copia efimera que usa la Accion de CI** (nunca del
+   codigo del repo).
+2. Compila con `next build` en modo `output: "export"` (`STATIC_EXPORT=true`) y con
+   `NEXT_PUBLIC_STATIC_DEMO=true`, una bandera que hace que Estudio, Campanas, Chat,
+   Difusion, Noticias y Archivos muestren un aviso honesto de "no disponible en esta demo"
+   en vez de intentar llamar a un servidor que no existe.
+3. Publica la carpeta `out/` como el sitio de Pages.
+
+**Paso manual pendiente:** activar Pages en el repo es una configuracion que solo un
+administrador puede hacer desde la interfaz de GitHub (no hay forma de automatizarlo por
+API): entra a *Settings → Pages → Source* y selecciona **"GitHub Actions"**. Una vez
+activado, el workflow ya deployado se encarga del resto en cada push.
+
 ## Estructura
 
 - `src/lib/types.ts` — tipos compartidos (artista, snapshot de plataforma, series de tiempo).

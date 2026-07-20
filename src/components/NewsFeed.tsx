@@ -6,6 +6,8 @@ import { newsThumbnail } from "@/lib/news-thumb";
 import { PlatformIcon } from "@/lib/platforms";
 import { SHARE_PLATFORMS, buildShare } from "@/lib/share";
 import { logActivity } from "@/lib/team";
+import { STATIC_DEMO } from "@/lib/static-demo";
+import { mockNews } from "@/lib/claude/news-mock";
 
 const REFRESH_MS = 60 * 60 * 1000; // 1 hour
 
@@ -27,6 +29,14 @@ export function NewsFeed() {
   async function load() {
     setLoading(true);
     setError(null);
+    if (STATIC_DEMO) {
+      setItems(mockNews());
+      setSource("mock");
+      setNote("Demo estatica — la busqueda en vivo con Claude necesita la app completa con servidor.");
+      setGeneratedAt(new Date());
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/news");
       const data = await res.json();
@@ -52,6 +62,7 @@ export function NewsFeed() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch-on-mount, deliberately shows a loading state immediately
     load();
+    if (STATIC_DEMO) return;
     const interval = setInterval(load, REFRESH_MS);
     return () => clearInterval(interval);
   }, []);

@@ -5,6 +5,7 @@ import { BroadcastMedia, BroadcastPlatform, BroadcastResult } from "@/lib/broadc
 import { AIProvider } from "@/lib/studio-types";
 import { logActivity } from "@/lib/team";
 import { getSuggested, recordChoice } from "@/lib/memory";
+import { STATIC_DEMO, STATIC_DEMO_NOTE } from "@/lib/static-demo";
 
 const MEMORY_SCOPE = "broadcast";
 
@@ -50,13 +51,17 @@ export function BroadcastPanel() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/broadcast-status")
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(() => setStatus({ telegram: false, whatsapp: false }));
+    if (STATIC_DEMO) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
+      setStatus({ telegram: false, whatsapp: false });
+    } else {
+      fetch("/api/broadcast-status")
+        .then((r) => r.json())
+        .then(setStatus)
+        .catch(() => setStatus({ telegram: false, whatsapp: false }));
+    }
 
     const suggestedProvider = getSuggested(MEMORY_SCOPE, "provider");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
     if (suggestedProvider === "gemini" || suggestedProvider === "chatgpt") setProvider(suggestedProvider);
 
     const suggestedPlatforms = getSuggested(MEMORY_SCOPE, "platforms");
@@ -78,6 +83,10 @@ export function BroadcastPanel() {
   async function handleGenerate() {
     if (!topic.trim()) {
       setError("Escribe un tema para generar el mensaje.");
+      return;
+    }
+    if (STATIC_DEMO) {
+      setError(STATIC_DEMO_NOTE);
       return;
     }
     setError(null);
@@ -117,6 +126,10 @@ export function BroadcastPanel() {
     }
     if (selected.size === 0) {
       setError("Selecciona al menos una plataforma.");
+      return;
+    }
+    if (STATIC_DEMO) {
+      setError(STATIC_DEMO_NOTE);
       return;
     }
     setError(null);

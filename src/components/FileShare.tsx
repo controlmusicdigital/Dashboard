@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FileMeta } from "@/lib/file-store";
 import { getCurrentUser } from "@/lib/team";
 import { logActivity } from "@/lib/team";
+import { STATIC_DEMO } from "@/lib/static-demo";
 
 function formatBytes(bytes: number): string {
   if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} GB`;
@@ -38,6 +39,10 @@ export function FileShare() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function refresh() {
+    if (STATIC_DEMO) {
+      setLoading(false);
+      return;
+    }
     const res = await fetch("/api/files");
     const data = await res.json();
     setFiles(data.files ?? []);
@@ -91,6 +96,20 @@ export function FileShare() {
         </p>
       </div>
 
+      {STATIC_DEMO ? (
+        <div
+          className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-10 text-center"
+          style={{ borderColor: "var(--border-hairline)", backgroundColor: "var(--surface-1)", color: "var(--text-muted)" }}
+        >
+          <span className="text-2xl">🔒</span>
+          <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+            Subir y compartir archivos no esta disponible en esta demo estatica
+          </span>
+          <span className="max-w-md text-xs">
+            GitHub Pages no puede correr el servidor que guarda los archivos — esto funciona en la app completa.
+          </span>
+        </div>
+      ) : (
       <label
         onDragOver={(e) => {
           e.preventDefault();
@@ -125,6 +144,7 @@ export function FileShare() {
           }}
         />
       </label>
+      )}
 
       {error && (
         <p className="text-xs" style={{ color: "var(--status-critical)" }}>
@@ -132,6 +152,7 @@ export function FileShare() {
         </p>
       )}
 
+      {!STATIC_DEMO && (
       <div className="flex flex-col gap-2">
         {loading ? (
           <div className="rounded-2xl px-4 py-8 text-center text-sm" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)", color: "var(--text-muted)" }}>
@@ -179,6 +200,7 @@ export function FileShare() {
           ))
         )}
       </div>
+      )}
     </div>
   );
 }

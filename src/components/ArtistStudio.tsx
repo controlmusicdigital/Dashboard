@@ -6,6 +6,7 @@ import { AIProvider, GeneratedContent, PublishState, SocialPlatformId } from "@/
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { logActivity } from "@/lib/team";
 import { getSuggested, recordChoice } from "@/lib/memory";
+import { STATIC_DEMO, STATIC_DEMO_NOTE } from "@/lib/static-demo";
 
 const STUDIO_PLATFORMS: SocialPlatformId[] = ["instagram", "tiktok", "facebook", "youtube", "x"];
 
@@ -70,13 +71,17 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
-    fetch("/api/ai-status")
-      .then((r) => r.json())
-      .then(setAiStatus)
-      .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
+    if (STATIC_DEMO) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
+      setAiStatus({ gemini: false, chatgpt: false });
+    } else {
+      fetch("/api/ai-status")
+        .then((r) => r.json())
+        .then(setAiStatus)
+        .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
+    }
 
     const suggested = getSuggested(`studio:${artist.id}`, "provider");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
     if (suggested === "gemini" || suggested === "chatgpt") setProvider(suggested);
   }, [artist.id]);
 
@@ -113,6 +118,10 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       setError("Escribe de que trata el post antes de generar.");
       return;
     }
+    if (STATIC_DEMO) {
+      setError(STATIC_DEMO_NOTE);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -140,6 +149,10 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
   async function handleImportLink() {
     if (!linkUrl.trim()) {
       setError("Pega un enlace para analizar.");
+      return;
+    }
+    if (STATIC_DEMO) {
+      setError(STATIC_DEMO_NOTE);
       return;
     }
     setImportingLink(true);

@@ -15,6 +15,7 @@ import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { formatUSD } from "@/lib/format";
 import { logActivity } from "@/lib/team";
 import { getSuggested, recordChoice } from "@/lib/memory";
+import { STATIC_DEMO, STATIC_DEMO_NOTE } from "@/lib/static-demo";
 
 const CAMPAIGN_PLATFORMS: CampaignPlatformId[] = ["googleAds", "instagram", "tiktok", "facebook", "youtube", "x"];
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
@@ -53,13 +54,17 @@ export function ArtistCampaigns({ artist }: { artist: Artist }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    fetch("/api/ai-status")
-      .then((r) => r.json())
-      .then(setAiStatus)
-      .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
+    if (STATIC_DEMO) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
+      setAiStatus({ gemini: false, chatgpt: false });
+    } else {
+      fetch("/api/ai-status")
+        .then((r) => r.json())
+        .then(setAiStatus)
+        .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
+    }
 
     const suggestedProvider = getSuggested(`campaigns:${artist.id}`, "provider");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
     if (suggestedProvider === "gemini" || suggestedProvider === "chatgpt") setProvider(suggestedProvider);
 
     const suggestedObjective = getSuggested(`campaigns:${artist.id}`, "objective") as CampaignObjective | undefined;
@@ -78,6 +83,10 @@ export function ArtistCampaigns({ artist }: { artist: Artist }) {
   async function handleGenerate() {
     if (!topic.trim()) {
       setError("Escribe el tema o gancho de la campana antes de generar.");
+      return;
+    }
+    if (STATIC_DEMO) {
+      setError(STATIC_DEMO_NOTE);
       return;
     }
     setLoading(true);

@@ -25,7 +25,7 @@ export function StatTile({ label, value, deltaPct }: { label: string; value: str
       <span className="text-xs" style={{ color: "var(--text-muted)" }}>
         {label}
       </span>
-      <div className="flex items-baseline gap-2">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span className="text-lg font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
           {value}
         </span>

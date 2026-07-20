@@ -32,7 +32,7 @@ export function PlatformCard({ snapshot }: { snapshot: PlatformSnapshot }) {
         )}
       </div>
 
-      <div className="flex items-baseline gap-2">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span className="text-2xl font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
           {snapshot.headline.value}
         </span>

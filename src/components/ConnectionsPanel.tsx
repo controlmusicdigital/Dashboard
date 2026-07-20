@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Artist } from "@/lib/types";
 import { PLATFORM_META, PLATFORM_ORDER, PlatformIcon } from "@/lib/platforms";
 import { connect, disconnect, getConnections, maskToken } from "@/lib/connections";
+import { logActivity } from "@/lib/team";
 
 export function ConnectionsPanel({ entity }: { entity: Artist }) {
   const [connections, setConnections] = useState<ReturnType<typeof getConnections>>({});
@@ -21,11 +22,13 @@ export function ConnectionsPanel({ entity }: { entity: Artist }) {
     setConnections(getConnections(entity.id));
     setOpenPlatform(null);
     setTokenInput("");
+    logActivity(`conecto ${PLATFORM_META[platform].label}`, entity.id, entity.name);
   }
 
   function handleDisconnect(platform: (typeof PLATFORM_ORDER)[number]) {
     disconnect(entity.id, platform);
     setConnections(getConnections(entity.id));
+    logActivity(`desconecto ${PLATFORM_META[platform].label}`, entity.id, entity.name);
   }
 
   return (

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Artist } from "@/lib/types";
 import { AIProvider, GeneratedContent, PublishState, SocialPlatformId } from "@/lib/studio-types";
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
+import { logActivity } from "@/lib/team";
 
 const STUDIO_PLATFORMS: SocialPlatformId[] = ["instagram", "tiktok", "facebook", "youtube", "x"];
 
@@ -176,6 +177,12 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       },
       ...prev,
     ]);
+    logActivity(
+      `publico un post en ${targets.map((t) => PLATFORM_META[t].label).join(", ")}`,
+      artist.id,
+      artist.name,
+      caption.slice(0, 60)
+    );
   }
 
   function retryPlatform(platform: SocialPlatformId) {

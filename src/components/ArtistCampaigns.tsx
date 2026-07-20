@@ -13,6 +13,7 @@ import {
 } from "@/lib/campaign-types";
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { formatUSD } from "@/lib/format";
+import { logActivity } from "@/lib/team";
 
 const CAMPAIGN_PLATFORMS: CampaignPlatformId[] = ["googleAds", "instagram", "tiktok", "facebook", "youtube", "x"];
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
@@ -129,6 +130,8 @@ export function ArtistCampaigns({ artist }: { artist: Artist }) {
 
   async function activate(id: string) {
     setCampaignStatus(id, "activa");
+    const campaign = campaigns.find((c) => c.id === id);
+    if (campaign) logActivity(`activo la campana "${campaign.name}"`, artist.id, artist.name);
   }
 
   return (

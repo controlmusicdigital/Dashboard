@@ -8,8 +8,9 @@ import { Overview } from "./Overview";
 import { ArtistView } from "./ArtistView";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsFeed } from "./NewsFeed";
+import { TeamPanel } from "./TeamPanel";
 
-type View = "overview" | "news" | "label" | string;
+type View = "overview" | "news" | "label" | "team" | string;
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -52,6 +53,9 @@ export function Dashboard() {
         <TabButton active={view === "label"} onClick={() => setView("label")}>
           El sello
         </TabButton>
+        <TabButton active={view === "team"} onClick={() => setView("team")}>
+          Mi equipo
+        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -66,6 +70,8 @@ export function Dashboard() {
           <NewsFeed />
         ) : view === "label" ? (
           <ArtistView data={labelData} />
+        ) : view === "team" ? (
+          <TeamPanel />
         ) : (
           <ArtistView data={allData[view]} />
         )}

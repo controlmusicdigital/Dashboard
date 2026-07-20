@@ -124,6 +124,19 @@ pero para las cuentas oficiales del sello en conjunto, no de un artista individu
 de ejemplo se generan en `src/lib/label-data.ts` reutilizando el mismo generador que los
 artistas (`src/lib/mock-data.ts`).
 
+## Mi equipo (invitaciones y actividad)
+
+Pestana "Mi equipo" (nivel general): boton "Enviar invitacion" para agregar gente de tu equipo (nombre, correo,
+rol: administrador / editor / solo lectura), y un feed "Lo que hace mi equipo" que registra las acciones que se
+hacen en el panel — conectar una red, publicar un post, activar una campana — con quien las hizo y cuando.
+
+- Es un identificador simple por navegador ("Quien eres en este navegador"), no una cuenta con contrasena.
+- Las invitaciones y la actividad se guardan **solo en este navegador** (localStorage); todavia no se envia
+  correo real ni hay una cuenta compartida entre dispositivos.
+- Para invitaciones por email de verdad y para que cada quien vea la actividad del equipo desde su propio
+  celular o computadora, hace falta un backend con autenticacion (cuentas de usuario) y una base de datos
+  compartida, mas un servicio de envio de correo (ej. Resend, SendGrid) — ese es el siguiente paso natural.
+
 ## Proximos pasos para datos en vivo
 
 Sustituir `getArtistData` / `getAllArtistData` en `src/lib/mock-data.ts` por llamadas reales:

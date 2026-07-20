@@ -20,6 +20,7 @@ interface HistoryEntry {
   platforms: SocialPlatformId[];
   caption: string;
   thumb: string | null;
+  thumbType: "image" | "video";
 }
 
 function providerLabel(p: AIProvider) {
@@ -44,6 +45,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
   const [activeVariant, setActiveVariant] = useState<SocialPlatformId>("instagram");
 
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [aspect, setAspect] = useState(ASPECTS[0]);
   const [overlayText, setOverlayText] = useState("");
   const [stickerPos, setStickerPos] = useState({ x: 50, y: 80 });
@@ -77,6 +79,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+    setMediaType(file.type.startsWith("video/") ? "video" : "image");
     setMediaUrl(URL.createObjectURL(file));
   }
 
@@ -167,6 +170,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
         platforms: targets,
         caption,
         thumb: mediaUrl,
+        thumbType: mediaType,
       },
       ...prev,
     ]);
@@ -193,8 +197,12 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
             style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}
           >
             {mediaUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl} alt="Vista previa del post" className="h-full w-full object-cover" draggable={false} />
+              mediaType === "video" ? (
+                <video src={mediaUrl} controls muted loop playsInline className="h-full w-full object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={mediaUrl} alt="Vista previa del post" className="h-full w-full object-cover" draggable={false} />
+              )
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-6 text-center" style={{ color: "var(--text-muted)" }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -202,7 +210,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
                   <circle cx="9" cy="9" r="2" />
                   <path d="M21 15l-5-5L5 21" />
                 </svg>
-                <span className="text-xs">Sube una foto o miniatura para este post</span>
+                <span className="text-xs">Sube una foto o video para este post</span>
               </div>
             )}
             {overlayText && (
@@ -220,8 +228,8 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
             className="flex cursor-pointer items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium"
             style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
           >
-            {mediaUrl ? "Cambiar imagen" : "Subir imagen"}
-            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+            {mediaUrl ? "Cambiar imagen o video" : "Subir imagen o video"}
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFile} />
           </label>
 
           <input
@@ -404,8 +412,12 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
             {history.map((h) => (
               <li key={h.id} className="flex items-center gap-3 text-sm">
                 {h.thumb ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={h.thumb} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                  h.thumbType === "video" ? (
+                    <video src={h.thumb} muted className="h-10 w-10 rounded-lg object-cover" />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={h.thumb} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                  )
                 ) : (
                   <div className="h-10 w-10 rounded-lg" style={{ backgroundColor: "var(--surface-2)" }} />
                 )}

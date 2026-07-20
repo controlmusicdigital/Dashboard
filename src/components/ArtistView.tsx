@@ -5,8 +5,10 @@ import { ArtistData } from "@/lib/types";
 import { PLATFORM_ORDER } from "@/lib/platforms";
 import { PlatformCard } from "./PlatformCard";
 import { ArtistStudio } from "./ArtistStudio";
+import { ArtistChat } from "./ArtistChat";
+import { ArtistCampaigns } from "./ArtistCampaigns";
 
-type SubView = "metrics" | "studio";
+type SubView = "metrics" | "studio" | "campaigns" | "chat";
 
 export function ArtistView({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -32,17 +34,23 @@ export function ArtistView({ data }: { data: ArtistData }) {
           </div>
         </div>
 
-        <div className="flex gap-2 rounded-full p-1" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
+        <div className="flex flex-wrap gap-2 rounded-full p-1" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
           <SubTabButton active={subView === "metrics"} onClick={() => setSubView("metrics")}>
             Metricas
           </SubTabButton>
           <SubTabButton active={subView === "studio"} onClick={() => setSubView("studio")}>
             Estudio de contenido
           </SubTabButton>
+          <SubTabButton active={subView === "campaigns"} onClick={() => setSubView("campaigns")}>
+            Campanas
+          </SubTabButton>
+          <SubTabButton active={subView === "chat"} onClick={() => setSubView("chat")}>
+            Chat con {artist.name}
+          </SubTabButton>
         </div>
       </div>
 
-      {subView === "metrics" ? (
+      {subView === "metrics" && (
         <>
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             {artist.bio}
@@ -53,9 +61,10 @@ export function ArtistView({ data }: { data: ArtistData }) {
             ))}
           </div>
         </>
-      ) : (
-        <ArtistStudio artist={artist} />
       )}
+      {subView === "studio" && <ArtistStudio artist={artist} />}
+      {subView === "campaigns" && <ArtistCampaigns artist={artist} />}
+      {subView === "chat" && <ArtistChat artist={artist} />}
     </div>
   );
 }

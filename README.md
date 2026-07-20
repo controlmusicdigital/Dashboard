@@ -59,6 +59,33 @@ para publicar de verdad hace falta autorizar cada cuenta por OAuth (Meta Graph A
 Instagram/Facebook, TikTok Content Posting API, YouTube Data API) y guardar esos tokens por
 artista; ese es el siguiente paso cuando quieran conectar cuentas reales.
 
+## Chatbot por artista (Claude Opus 4.8)
+
+Cada artista tiene una pestana "Chat con &lt;artista&gt;" — un chatbot que responde en el
+personaje del artista (nombre, genero, bio), pensado para el equipo o para probar la voz del
+artista antes de usarla en redes. Corre sobre la API de Claude (modelo `claude-opus-4-8`) con
+streaming en tiempo real.
+
+1. Copia `.env.local.example` a `.env.local` si no lo has hecho.
+2. Pon tu llave en `ANTHROPIC_API_KEY` (consola de Anthropic, nunca en el chat ni en el repo).
+3. Reinicia `npm run dev`.
+
+Sin la llave, el chat sigue funcionando con respuestas de ejemplo (se avisa con el estado
+"Modo demostracion" en la cabecera del chat). La llamada a Claude ocurre solo en
+`src/app/api/chat/route.ts` (servidor); la llave nunca llega al navegador.
+
+El chat tambien soporta voz en el navegador (sin API extra): microfono para dictar el mensaje
+y boton de bocina para escuchar cada respuesta, usando el Web Speech API nativo del navegador
+(Chromium). Si el navegador no lo soporta, esos botones simplemente no aparecen.
+
+## Campanas publicitarias (Google Ads, Instagram, TikTok, Facebook, YouTube)
+
+Pestana "Campanas" por artista: arma una campana (objetivo, plataformas, presupuesto, fechas,
+audiencia), genera el copy publicitario con Gemini o ChatGPT, y la pasa a "borrador". El boton
+"Activar" hoy la marca como activa de forma **simulada** — publicarla de verdad en cada
+plataforma requiere las cuentas de Google Ads / Meta Ads / TikTok Ads conectadas por API,
+igual que el resto de integraciones pendientes.
+
 ## Proximos pasos para datos en vivo
 
 Sustituir `getArtistData` / `getAllArtistData` en `src/lib/mock-data.ts` por llamadas reales:

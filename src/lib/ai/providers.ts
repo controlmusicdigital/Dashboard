@@ -5,7 +5,7 @@ import { Artist } from "../types";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 
-export async function callGemini(artist: Artist, userPrompt: string): Promise<ParsedGeneration> {
+export async function requestGeminiText(promptText: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY no esta configurada");
 
@@ -15,7 +15,7 @@ export async function callGemini(artist: Artist, userPrompt: string): Promise<Pa
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: buildPrompt(artist, userPrompt) }] }],
+        contents: [{ role: "user", parts: [{ text: promptText }] }],
         generationConfig: { responseMimeType: "application/json", temperature: 0.9 },
       }),
     }
@@ -29,10 +29,10 @@ export async function callGemini(artist: Artist, userPrompt: string): Promise<Pa
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (typeof text !== "string") throw new Error("Gemini no devolvio texto");
-  return parseGenerationJSON(text);
+  return text;
 }
 
-export async function callChatGPT(artist: Artist, userPrompt: string): Promise<ParsedGeneration> {
+export async function requestChatGPTText(promptText: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY no esta configurada");
 
@@ -41,7 +41,7 @@ export async function callChatGPT(artist: Artist, userPrompt: string): Promise<P
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model: OPENAI_MODEL,
-      messages: [{ role: "user", content: buildPrompt(artist, userPrompt) }],
+      messages: [{ role: "user", content: promptText }],
       response_format: { type: "json_object" },
       temperature: 0.9,
     }),
@@ -55,5 +55,15 @@ export async function callChatGPT(artist: Artist, userPrompt: string): Promise<P
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
   if (typeof text !== "string") throw new Error("ChatGPT no devolvio texto");
+  return text;
+}
+
+export async function callGemini(artist: Artist, userPrompt: string): Promise<ParsedGeneration> {
+  const text = await requestGeminiText(buildPrompt(artist, userPrompt));
+  return parseGenerationJSON(text);
+}
+
+export async function callChatGPT(artist: Artist, userPrompt: string): Promise<ParsedGeneration> {
+  const text = await requestChatGPTText(buildPrompt(artist, userPrompt));
   return parseGenerationJSON(text);
 }

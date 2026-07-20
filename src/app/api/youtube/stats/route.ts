@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getArtist } from "@/lib/artists";
 import { requireArtistAccess } from "@/lib/auth";
 import { getValidAccessToken, setTokensCookie } from "@/lib/youtube-auth";
-import { fetchChannelAnalytics, fetchChannelInfo } from "@/lib/youtube-api";
+import { fetchChannelAnalytics, fetchChannelInfo, fetchChannelVideos } from "@/lib/youtube-api";
 
 export const runtime = "nodejs";
 
@@ -18,8 +18,12 @@ export async function GET(req: NextRequest) {
   if (!token) return NextResponse.json({ error: "Cuenta de YouTube no conectada" }, { status: 404 });
 
   try {
-    const [channel, analytics] = await Promise.all([fetchChannelInfo(token.accessToken), fetchChannelAnalytics(token.accessToken)]);
-    const res = NextResponse.json({ channel, analytics });
+    const [channel, analytics, videos] = await Promise.all([
+      fetchChannelInfo(token.accessToken),
+      fetchChannelAnalytics(token.accessToken),
+      fetchChannelVideos(token.accessToken),
+    ]);
+    const res = NextResponse.json({ channel, analytics, videos });
     if (token.refreshed) setTokensCookie(res, artist.id, token.refreshed);
     return res;
   } catch (err) {

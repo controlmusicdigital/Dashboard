@@ -4,6 +4,7 @@ export interface YouTubeVideo {
   id: string;
   title: string;
   thumbSeed: string;
+  thumbnailUrl?: string;
   views: number;
   likes: number;
   comments: number;

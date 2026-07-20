@@ -29,7 +29,7 @@ interface YouTubeAnalyticsDay {
   subscribersGained: number;
 }
 
-function YouTubeConnectPanel({ artistId }: { artistId: string }) {
+function YouTubeConnectPanel({ artistId, onConnectionChange }: { artistId: string; onConnectionChange?: (connected: boolean) => void }) {
   const [loading, setLoading] = useState(true);
   const [configured, setConfigured] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -49,9 +49,11 @@ function YouTubeConnectPanel({ artistId }: { artistId: string }) {
       setConfigured(Boolean(data.configured));
       setConnected(Boolean(data.connected));
       setChannel(data.channel ?? null);
+      onConnectionChange?.(Boolean(data.connected));
     } catch {
       setConfigured(false);
       setConnected(false);
+      onConnectionChange?.(false);
     } finally {
       setLoading(false);
     }
@@ -95,6 +97,7 @@ function YouTubeConnectPanel({ artistId }: { artistId: string }) {
       setConnected(false);
       setChannel(null);
       setAnalytics(null);
+      onConnectionChange?.(false);
     } finally {
       setDisconnecting(false);
     }
@@ -212,13 +215,47 @@ function YouTubeConnectPanel({ artistId }: { artistId: string }) {
 
 export function YouTubeStudio({ data }: { data: ArtistData }) {
   const { artist } = data;
-  const channel = data.platforms.youtube;
+  const mockChannel = data.platforms.youtube;
   const [videos, setVideos] = useState<YouTubeVideo[]>(() => getYouTubeVideos(artist.id));
+  const [realVideos, setRealVideos] = useState<YouTubeVideo[] | null>(null);
+  const [realHeader, setRealHeader] = useState<{ headline: { value: string; label: string }; stats: { label: string; value: string }[] } | null>(
+    null
+  );
 
   const [title, setTitle] = useState("");
   const [hasFile, setHasFile] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleConnectionChange(connected: boolean) {
+    if (!connected) {
+      setRealVideos(null);
+      setRealHeader(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/youtube/stats?artistId=${encodeURIComponent(artist.id)}`);
+      const stats = await res.json();
+      if (!res.ok) return;
+      setRealHeader({
+        headline: { value: formatCompact(stats.channel.subscriberCount), label: "Suscriptores" },
+        stats: [
+          { label: "Vistas totales", value: formatCompact(stats.channel.viewCount) },
+          { label: "Videos", value: String(stats.channel.videoCount) },
+        ],
+      });
+      setRealVideos(
+        (stats.videos as { id: string; title: string; thumbnailUrl: string; views: number; likes: number; comments: number; durationSec: number; publishedAt: string; status: YouTubeVideo["status"] }[]).map(
+          (v) => ({ ...v, thumbSeed: v.id })
+        )
+      );
+    } catch {
+      // leave mock data in place if the real fetch fails
+    }
+  }
+
+  const channel = realHeader ?? mockChannel;
+  const displayVideos = realVideos ?? videos;
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     setHasFile(Boolean(e.target.files?.[0]));
@@ -255,7 +292,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
             YouTube Studio
           </h2>
           <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-            Videos de {artist.name} — datos de ejemplo hasta conectar la cuenta real de YouTube.
+            {realVideos ? `Videos de ${artist.name} — datos reales de su canal de YouTube.` : `Videos de ${artist.name} — datos de ejemplo hasta conectar la cuenta real de YouTube.`}
           </p>
         </div>
         <div className="flex gap-4 text-sm">
@@ -280,7 +317,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
         </div>
       </div>
 
-      <YouTubeConnectPanel artistId={artist.id} />
+      <YouTubeConnectPanel artistId={artist.id} onConnectionChange={handleConnectionChange} />
 
       <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
         <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
@@ -316,15 +353,15 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {videos.map((v) => (
+        {displayVideos.map((v) => (
           <div
             key={v.id}
             className="flex flex-col gap-3 rounded-2xl"
             style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
           >
             <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element -- generated data-URI thumbnail, not an optimizable remote asset */}
-              <img src={youtubeThumbnail(v.thumbSeed)} alt="" className="aspect-video w-full rounded-t-2xl object-cover" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail or generated data-URI placeholder */}
+              <img src={v.thumbnailUrl || youtubeThumbnail(v.thumbSeed)} alt="" className="aspect-video w-full rounded-t-2xl object-cover" />
               {v.durationSec > 0 && (
                 <span
                   className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[13px] font-semibold text-white"

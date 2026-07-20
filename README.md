@@ -81,6 +81,17 @@ artista de origen. Filtra por artista/sello, por red social, o busca por texto/u
 "Responder" simula una respuesta (se guarda solo en esta sesion del navegador) y queda registrada
 en la actividad de "Mi equipo".
 
+## Archivos (compartir videos y archivos sin perder calidad)
+
+Pestana "Archivos" (nivel general): arrastra o elige videos, fotos o documentos para compartirlos
+con el equipo. Esto **si es real** — el archivo se guarda tal cual llega, byte por byte, sin
+comprimir ni recodificar (verificado con hash SHA-256 antes/despues: identico), y "Descargar" trae
+exactamente el mismo archivo. Se sirve desde `src/lib/file-store.ts` (servidor) y se guarda en
+`.data/shared-files/` en el disco de esta maquina — por eso funciona mientras el panel corra como
+proceso persistente (como ahora), pero **no sobrevive un redeploy en un hosting serverless** (ej.
+Vercel) sin agregar un servicio de almacenamiento real (S3, Vercel Blob, etc.), que seria el
+siguiente paso para que los archivos queden disponibles de forma permanente.
+
 ## Chatbot por artista (Claude Opus 4.8)
 
 Cada artista tiene una pestana "Chat con &lt;artista&gt;" — un chatbot que responde en el

@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# archivos compartidos subidos por el equipo (solo disco local de este servidor)
+/.data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -7,6 +7,7 @@ import { requireArtistAccess } from "@/lib/auth";
 import { streamChatGPTText, streamGeminiText } from "@/lib/ai/providers";
 
 export const runtime = "nodejs";
+export const maxDuration = 45;
 
 interface ChatMessage {
   role: "user" | "assistant";

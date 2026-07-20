@@ -5,6 +5,9 @@ import { AIProvider } from "@/lib/studio-types";
 import { CampaignObjective } from "@/lib/campaign-types";
 import { requireArtistAccess } from "@/lib/auth";
 
+export const runtime = "nodejs";
+export const maxDuration = 45;
+
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
 
 export async function POST(req: NextRequest) {

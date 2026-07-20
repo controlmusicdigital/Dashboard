@@ -2,18 +2,18 @@ import "server-only";
 import { buildPrompt, parseGenerationJSON, ParsedGeneration } from "./prompt";
 import { Artist } from "../types";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 
 const RETRYABLE_STATUS = new Set([429, 503]);
 
-async function fetchWithRetry(url: string, init: RequestInit, attempts = 3): Promise<Response> {
+async function fetchWithRetry(url: string, init: RequestInit, attempts = 4): Promise<Response> {
   let lastRes: Response | undefined;
   for (let attempt = 0; attempt < attempts; attempt++) {
     const res = await fetch(url, init);
     if (res.ok || !RETRYABLE_STATUS.has(res.status) || attempt === attempts - 1) return res;
     lastRes = res;
-    await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+    await new Promise((resolve) => setTimeout(resolve, 600 * 2 ** attempt));
   }
   return lastRes!;
 }

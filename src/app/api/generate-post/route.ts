@@ -4,6 +4,9 @@ import { getArtist } from "@/lib/artists";
 import { AIProvider } from "@/lib/studio-types";
 import { requireArtistAccess } from "@/lib/auth";
 
+export const runtime = "nodejs";
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const provider = body?.provider as AIProvider | undefined;

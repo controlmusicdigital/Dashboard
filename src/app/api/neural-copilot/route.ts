@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 
 function buildSystemInstruction(context: string): string {
   return `Eres "CMD-Neural AI", el copiloto de inteligencia de datos del centro de comando de Control Music Digital,

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateBroadcastMessage } from "@/lib/ai/broadcast";
 import { AIProvider } from "@/lib/studio-types";
 
+export const runtime = "nodejs";
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const provider = body?.provider as AIProvider | undefined;

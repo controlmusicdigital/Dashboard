@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
-const ROOT = path.join(process.cwd(), ".data", "youtube-tokens");
+const ROOT = '/tmp/youtube-tokens';
 const STATE_SECRET = process.env.AUTH_SECRET || "cmd-dev-insecure-secret-change-me";
 
 const SCOPES = ["https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/yt-analytics.readonly"];

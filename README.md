@@ -144,6 +144,28 @@ hacen en el panel — conectar una red, publicar un post, activar una campana �
   celular o computadora, hace falta un backend con autenticacion (cuentas de usuario) y una base de datos
   compartida, mas un servicio de envio de correo (ej. Resend, SendGrid) — ese es el siguiente paso natural.
 
+## Difusion (Telegram y WhatsApp)
+
+Pestana "Difusion" (nivel general): escribe un mensaje y mandalo por Telegram, WhatsApp, o los
+dos a la vez con un solo boton.
+
+1. Copia `.env.local.example` a `.env.local` si no lo has hecho.
+2. Para Telegram: crea un bot con [@BotFather](https://t.me/BotFather) (te da `TELEGRAM_BOT_TOKEN`),
+   agregalo a tu canal o grupo, y saca el `TELEGRAM_CHAT_ID` (ej. abriendo
+   `https://api.telegram.org/bot<token>/getUpdates` despues de mandarle un mensaje al bot).
+3. Para WhatsApp: crea una app de Meta con el
+   [WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/get-started) y llena
+   `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_TO` (el numero que va a recibir).
+4. Reinicia `npm run dev`.
+
+Cada boton de plataforma muestra "Real" o "Demo" segun si esa integracion esta configurada. Sin
+llaves, el envio se simula (queda marcado como tal, nunca se disfraza de envio real). Con las
+llaves puestas, el mensaje sale de verdad — Telegram vía su Bot API (`sendMessage`) y WhatsApp vía
+la Cloud API de Meta. Nota sobre WhatsApp: la Cloud API solo entrega texto libre a un numero que te
+haya escrito en las ultimas 24 horas; fuera de esa ventana hace falta una plantilla (template)
+pre-aprobada por Meta — eso no esta implementado todavia. Los envios ocurren en
+`src/lib/broadcast/` (servidor); las llaves nunca llegan al navegador.
+
 ## Proximos pasos para datos en vivo
 
 Sustituir `getArtistData` / `getAllArtistData` en `src/lib/mock-data.ts` por llamadas reales:

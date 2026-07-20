@@ -9,8 +9,9 @@ import { ArtistView } from "./ArtistView";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsFeed } from "./NewsFeed";
 import { TeamPanel } from "./TeamPanel";
+import { BroadcastPanel } from "./BroadcastPanel";
 
-type View = "overview" | "news" | "label" | "team" | string;
+type View = "overview" | "news" | "label" | "team" | "broadcast" | string;
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -56,6 +57,9 @@ export function Dashboard() {
         <TabButton active={view === "team"} onClick={() => setView("team")}>
           Mi equipo
         </TabButton>
+        <TabButton active={view === "broadcast"} onClick={() => setView("broadcast")}>
+          Difusion
+        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -72,6 +76,8 @@ export function Dashboard() {
           <ArtistView data={labelData} />
         ) : view === "team" ? (
           <TeamPanel />
+        ) : view === "broadcast" ? (
+          <BroadcastPanel />
         ) : (
           <ArtistView data={allData[view]} />
         )}

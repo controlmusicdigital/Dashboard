@@ -105,6 +105,25 @@ aparte, solo `ANTHROPIC_API_KEY`.
 - La busqueda ocurre en `src/lib/claude/news.ts` (servidor); la llave nunca llega al
   navegador.
 
+## Conexiones (por artista y para el sello)
+
+Cada artista — y tambien "El sello" (ver mas abajo) — tiene una pestana "Conexiones" con la
+misma tabla de conectores del panel de integraciones: Spotify, YouTube, Instagram, TikTok,
+Facebook, X, Google Ads y DistroKid, cada uno con boton "Conectar".
+
+Al conectar, el token de acceso se guarda **solo en ese navegador** (`localStorage`), nunca se
+envia a ningun servidor. Esto deja la conexion lista y marcada como "Conectada" — el siguiente
+paso, cuando quieran, es que las tarjetas de metricas usen ese token para llamar a la API real
+de cada plataforma en lugar de mostrar datos de ejemplo (ver "Proximos pasos" abajo).
+
+## El sello (vista de Control Music Digital)
+
+Pestana "El sello" (nivel general, junto a "Resumen general" y "Noticias"): la misma vista
+completa que tiene cada artista — Metricas, Estudio de contenido, Campanas, Conexiones y Chat —
+pero para las cuentas oficiales del sello en conjunto, no de un artista individual. Los datos
+de ejemplo se generan en `src/lib/label-data.ts` reutilizando el mismo generador que los
+artistas (`src/lib/mock-data.ts`).
+
 ## Proximos pasos para datos en vivo
 
 Sustituir `getArtistData` / `getAllArtistData` en `src/lib/mock-data.ts` por llamadas reales:

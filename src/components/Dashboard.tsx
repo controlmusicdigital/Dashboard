@@ -3,17 +3,19 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { getAllArtistData } from "@/lib/mock-data";
+import { getLabelData } from "@/lib/label-data";
 import { Overview } from "./Overview";
 import { ArtistView } from "./ArtistView";
 import { ThemeToggle } from "./ThemeToggle";
 import { NewsFeed } from "./NewsFeed";
 
-type View = "overview" | "news" | string;
+type View = "overview" | "news" | "label" | string;
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const allData = useMemo(() => getAllArtistData(), []);
   const dataList = Object.values(allData);
+  const labelData = useMemo(() => getLabelData(), []);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
@@ -47,6 +49,9 @@ export function Dashboard() {
         <TabButton active={view === "news"} onClick={() => setView("news")}>
           Noticias
         </TabButton>
+        <TabButton active={view === "label"} onClick={() => setView("label")}>
+          El sello
+        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -59,6 +64,8 @@ export function Dashboard() {
           <Overview dataList={dataList} onSelectArtist={setView} />
         ) : view === "news" ? (
           <NewsFeed />
+        ) : view === "label" ? (
+          <ArtistView data={labelData} />
         ) : (
           <ArtistView data={allData[view]} />
         )}

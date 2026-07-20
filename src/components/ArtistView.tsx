@@ -7,8 +7,9 @@ import { PlatformCard } from "./PlatformCard";
 import { ArtistStudio } from "./ArtistStudio";
 import { ArtistChat } from "./ArtistChat";
 import { ArtistCampaigns } from "./ArtistCampaigns";
+import { ConnectionsPanel } from "./ConnectionsPanel";
 
-type SubView = "metrics" | "studio" | "campaigns" | "chat";
+type SubView = "metrics" | "studio" | "campaigns" | "connections" | "chat";
 
 export function ArtistView({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -44,6 +45,9 @@ export function ArtistView({ data }: { data: ArtistData }) {
           <SubTabButton active={subView === "campaigns"} onClick={() => setSubView("campaigns")}>
             Campanas
           </SubTabButton>
+          <SubTabButton active={subView === "connections"} onClick={() => setSubView("connections")}>
+            Conexiones
+          </SubTabButton>
           <SubTabButton active={subView === "chat"} onClick={() => setSubView("chat")}>
             Chat con {artist.name}
           </SubTabButton>
@@ -64,6 +68,7 @@ export function ArtistView({ data }: { data: ArtistData }) {
       )}
       {subView === "studio" && <ArtistStudio artist={artist} />}
       {subView === "campaigns" && <ArtistCampaigns artist={artist} />}
+      {subView === "connections" && <ConnectionsPanel entity={artist} />}
       {subView === "chat" && <ArtistChat artist={artist} />}
     </div>
   );

@@ -280,15 +280,19 @@ function buildPlatform(id: PlatformId, artistId: string, rng: () => number, mult
 
 const PLATFORM_IDS: PlatformId[] = ["spotify", "youtube", "instagram", "tiktok", "facebook", "x", "googleAds", "distrokid"];
 
+export function buildEntityData(entity: ArtistData["artist"], mult: number): ArtistData {
+  const platforms = {} as Record<PlatformId, PlatformSnapshot>;
+  for (const id of PLATFORM_IDS) {
+    const rng = mulberry32(`${entity.id}:${id}:v1`);
+    platforms[id] = buildPlatform(id, entity.id, rng, mult);
+  }
+  return { artist: entity, platforms };
+}
+
 function buildArtistData(artistId: string): ArtistData {
   const artist = artists.find((a) => a.id === artistId)!;
   const mult = ARTIST_MULTIPLIER[artistId] ?? 1;
-  const platforms = {} as Record<PlatformId, PlatformSnapshot>;
-  for (const id of PLATFORM_IDS) {
-    const rng = mulberry32(`${artistId}:${id}:v1`);
-    platforms[id] = buildPlatform(id, artistId, rng, mult);
-  }
-  return { artist, platforms };
+  return buildEntityData(artist, mult);
 }
 
 let cache: Record<string, ArtistData> | null = null;

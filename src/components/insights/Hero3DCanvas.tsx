@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { GeminiNanoState } from "@/hooks/useGeminiNano";
+import type { NeuralState } from "@/lib/neural-state";
 
-const STATE_COLOR: Record<GeminiNanoState, THREE.Color> = {
-  idle: new THREE.Color("#22d3ee"), // electric cyan
-  thinking: new THREE.Color("#e879f9"), // glowing magenta
-  responding: new THREE.Color("#f0abfc"),
+const STATE_COLOR: Record<NeuralState, THREE.Color> = {
+  idle: new THREE.Color("#00f0ff"), // electric cyan
+  thinking: new THREE.Color("#ff007a"), // glowing magenta
+  generating: new THREE.Color("#ffb020"), // neon amber
 };
 
 function fibonacciSpherePositions(count: number, radius: number): Float32Array {
@@ -25,11 +25,11 @@ function fibonacciSpherePositions(count: number, radius: number): Float32Array {
   return positions;
 }
 
-function ParticleSphere({ aiState, particleCount }: { aiState: GeminiNanoState; particleCount: number }) {
+function ParticleSphere({ aiState, particleCount }: { aiState: NeuralState; particleCount: number }) {
   const pointsRef = useRef<THREE.Points>(null);
   const materialRef = useRef<THREE.PointsMaterial>(null);
   const positions = useMemo(() => fibonacciSpherePositions(particleCount, 1.8), [particleCount]);
-  const targetColor = useRef(new THREE.Color("#22d3ee"));
+  const targetColor = useRef(new THREE.Color("#00f0ff"));
 
   useFrame((frameState, delta) => {
     if (!pointsRef.current || !materialRef.current) return;
@@ -52,7 +52,7 @@ function ParticleSphere({ aiState, particleCount }: { aiState: GeminiNanoState; 
       </bufferGeometry>
       <pointsMaterial
         ref={materialRef}
-        color="#22d3ee"
+        color="#00f0ff"
         size={0.022}
         sizeAttenuation
         transparent
@@ -64,7 +64,7 @@ function ParticleSphere({ aiState, particleCount }: { aiState: GeminiNanoState; 
   );
 }
 
-function GlowRing({ aiState }: { aiState: GeminiNanoState }) {
+function GlowRing({ aiState }: { aiState: NeuralState }) {
   const ringRef = useRef<THREE.Mesh>(null);
   useFrame((frameState, delta) => {
     if (!ringRef.current) return;
@@ -75,7 +75,7 @@ function GlowRing({ aiState }: { aiState: GeminiNanoState }) {
   return (
     <mesh ref={ringRef} rotation={[Math.PI / 2.4, 0, 0]}>
       <ringGeometry args={[2.1, 2.16, 96]} />
-      <meshBasicMaterial color="#f0abfc" transparent opacity={0.18} side={THREE.DoubleSide} />
+      <meshBasicMaterial color="#ff007a" transparent opacity={0.18} side={THREE.DoubleSide} />
     </mesh>
   );
 }
@@ -91,7 +91,7 @@ function PointerParallax({ children }: { children: React.ReactNode }) {
   return <group ref={groupRef}>{children}</group>;
 }
 
-export function Hero3DCanvas({ aiState }: { aiState: GeminiNanoState }) {
+export function Hero3DCanvas({ aiState }: { aiState: NeuralState }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [particleCount, setParticleCount] = useState(1200);
 
@@ -109,7 +109,7 @@ export function Hero3DCanvas({ aiState }: { aiState: GeminiNanoState }) {
         aria-hidden
         className="h-full w-full rounded-3xl"
         style={{
-          background: "radial-gradient(circle at 50% 40%, rgba(34,211,238,0.25), rgba(232,121,249,0.12) 55%, transparent 75%)",
+          background: "radial-gradient(circle at 50% 40%, rgba(0,240,255,0.25), rgba(255,0,122,0.12) 55%, transparent 75%)",
         }}
       />
     );

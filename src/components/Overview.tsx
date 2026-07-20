@@ -1,6 +1,6 @@
 import { ArtistData } from "@/lib/types";
 import { formatCompact, formatUSD } from "@/lib/format";
-import { StatTile } from "./StatTile";
+import { FuturisticKpiCard } from "./FuturisticKpiCard";
 import { ComparisonChart } from "./ComparisonChart";
 import { PlatformIcon } from "@/lib/platforms";
 
@@ -15,6 +15,12 @@ const AUDIENCE_PLATFORMS = [
 
 export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[]; onSelectArtist: (id: string) => void }) {
   const sum = (pick: (d: ArtistData) => number) => dataList.reduce((acc, d) => acc + pick(d), 0);
+  const avgDelta = (pick: (d: ArtistData) => number) => sum(pick) / (dataList.length || 1);
+  const combinedSeries = (pick: (d: ArtistData) => number[]) => {
+    const series = dataList.map(pick);
+    const len = series[0]?.length ?? 0;
+    return Array.from({ length: len }, (_, i) => series.reduce((acc, s) => acc + s[i], 0));
+  };
 
   const totalSpotify = sum((d) => d.platforms.spotify.headline.raw ?? 0);
   const totalYoutube = sum((d) => d.platforms.youtube.headline.raw ?? 0);
@@ -27,6 +33,16 @@ export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[];
   );
   const totalAdsSpend = sum((d) => d.platforms.googleAds.headline.raw ?? 0);
   const totalDistroRevenue = sum((d) => d.platforms.distrokid.headline.raw ?? 0);
+
+  const spotifyDelta = avgDelta((d) => d.platforms.spotify.headline.deltaPct);
+  const youtubeDelta = avgDelta((d) => d.platforms.youtube.headline.deltaPct);
+  const adsDelta = avgDelta((d) => d.platforms.googleAds.headline.deltaPct);
+  const distroDelta = avgDelta((d) => d.platforms.distrokid.headline.deltaPct);
+
+  const spotifySeries = combinedSeries((d) => d.platforms.spotify.series.map((p) => p.value));
+  const youtubeSeries = combinedSeries((d) => d.platforms.youtube.series.map((p) => p.value));
+  const adsSeries = combinedSeries((d) => d.platforms.googleAds.series.map((p) => p.value));
+  const distroSeries = combinedSeries((d) => d.platforms.distrokid.series.map((p) => p.value));
 
   const comparisonRows = AUDIENCE_PLATFORMS.map(({ id, label }) => {
     const row: Record<string, string | number> = { platform: label };
@@ -41,11 +57,39 @@ export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[];
           Sello en conjunto · ultimos 30 dias
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatTile label="Oyentes mensuales (Spotify)" value={formatCompact(totalSpotify)} deltaPct={0} />
-          <StatTile label="Suscriptores (YouTube)" value={formatCompact(totalYoutube)} deltaPct={0} />
-          <StatTile label="Seguidores en redes" value={formatCompact(totalSocial)} deltaPct={0} />
-          <StatTile label="Inversion en Ads" value={formatUSD(totalAdsSpend)} deltaPct={0} />
-          <StatTile label="Ingresos DistroKid" value={formatUSD(totalDistroRevenue)} deltaPct={0} />
+          <FuturisticKpiCard
+            label="Oyentes mensuales (Spotify)"
+            raw={totalSpotify}
+            format={formatCompact}
+            deltaPct={spotifyDelta}
+            series={spotifySeries}
+            accent="var(--accent-cyan)"
+          />
+          <FuturisticKpiCard
+            label="Suscriptores (YouTube)"
+            raw={totalYoutube}
+            format={formatCompact}
+            deltaPct={youtubeDelta}
+            series={youtubeSeries}
+            accent="var(--accent-red-dr)"
+          />
+          <FuturisticKpiCard label="Seguidores en redes" raw={totalSocial} format={formatCompact} accent="var(--accent-magenta)" />
+          <FuturisticKpiCard
+            label="Inversion en Ads"
+            raw={totalAdsSpend}
+            format={formatUSD}
+            deltaPct={adsDelta}
+            series={adsSeries}
+            accent="var(--accent-blue-dr)"
+          />
+          <FuturisticKpiCard
+            label="Ingresos DistroKid"
+            raw={totalDistroRevenue}
+            format={formatUSD}
+            deltaPct={distroDelta}
+            series={distroSeries}
+            accent="var(--accent-amber)"
+          />
         </div>
       </section>
 

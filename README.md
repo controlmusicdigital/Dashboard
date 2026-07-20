@@ -239,25 +239,31 @@ no un modelo entrenado ni nada que se comparta entre dispositivos. La pestana "M
 seccion "Lo que ha aprendido el panel" que muestra esos patrones de forma transparente, con un
 boton "Olvidar todo" para resetear cuando quieras.
 
-## AI Insights (Gemini Nano Banana)
+## Tema "Deep Obsidian Space" y CMD-Neural AI
 
-Pestana separada del resto del panel, con su propio tema visual (neon oscuro, glassmorphism, esfera de
-particulas 3D con `@react-three/fiber`) para no tocar el diseno del resto de la app. Incluye un ribbon de
-KPIs animados del sello, un grafico de alcance por plataforma, una calculadora de ROI estimado, y una
-grilla de artistas con tarjetas 3D (`src/components/insights/`).
+Todo el panel usa un tema futurista tipo HUD de nave — fondo obsidiana, glassmorphism, bordes con brillo
+neon cian/magenta, grid 3D animado de fondo (`src/components/hud/GridBackground.tsx`) y una barra de estado
+en el header con reloj en vivo, indicador de "ping" y un visualizador de audio (`src/components/hud/HudStatusBar.tsx`).
+Los colores viven como variables CSS en `src/app/globals.css`, asi que retemear el panel entero es cuestion
+de tocar ese archivo — casi todos los componentes ya leen de esas variables en vez de colores fijos.
 
-El widget flotante "Gemini Nano Banana" (`GeminiBananaCopilot.tsx`) es un copiloto de datos con dos capas:
+Los KPIs principales (`FuturisticKpiCard.tsx`) tienen inclinacion 3D con el mouse, contador animado y un
+sparkline con brillo generado a partir de la serie de los ultimos 30 dias.
+
+El nucleo flotante **CMD-Neural AI** (`src/components/hud/NeuralCore.tsx`) esta disponible en cualquier
+pestana (no solo en AI Insights) y responde en tres capas, en orden:
 
 1. **En el dispositivo**: si el navegador expone la Prompt API de Chrome para Gemini Nano (`window.LanguageModel`
    o `window.ai.languageModel` — API experimental, solo en Chrome Canary/Dev con el flag "Prompt API for Gemini
    Nano" activado), responde ahi mismo, sin red (`src/hooks/useGeminiNano.ts`).
-2. **Respaldo en servidor**: si no esta disponible (la gran mayoria de navegadores hoy), cae automaticamente a
-   Claude Opus 4.8 via `/api/insights-copilot`, con el mismo patron mock-first del resto del panel si no hay
-   `ANTHROPIC_API_KEY` configurada. El widget siempre deja claro cual de las dos fuentes respondio.
+2. **Google Gemini en la nube**: si no esta disponible (la gran mayoria de navegadores hoy), cae automaticamente
+   a Gemini via `/api/neural-copilot`, con el mismo patron mock-first del resto del panel si no hay
+   `GEMINI_API_KEY` configurada.
+3. **Datos de ejemplo**: si tampoco hay llave, o estamos en la demo estatica de GitHub Pages (sin servidor).
 
-Cada tarjeta de artista tiene un boton de "auditoria rapida" que le manda un prompt pre-armado al copiloto.
-En la demo estatica de GitHub Pages, el respaldo en servidor tambien esta deshabilitado (no hay servidor),
-asi que sin Gemini Nano detectado el widget muestra el aviso estandar de demo estatica.
+El nucleo lee la fuente real de cada respuesta (header `X-Copilot-Source`) para nunca mostrar una respuesta de
+ejemplo como si fuera de Gemini. Cada tarjeta de artista en AI Insights tiene un boton de "auditoria rapida"
+que le manda un prompt pre-armado al nucleo desde cualquier parte de la pagina (`src/lib/neural-state.tsx`).
 
 ## Proximos pasos para datos en vivo
 

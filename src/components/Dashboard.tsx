@@ -13,6 +13,11 @@ import { BroadcastPanel } from "./BroadcastPanel";
 import { CommentsInbox } from "./CommentsInbox";
 import { FileShare } from "./FileShare";
 import { AIInsights } from "./insights/AIInsights";
+import { GridBackground } from "./hud/GridBackground";
+import { HudStatusBar } from "./hud/HudStatusBar";
+import { NeuralCore } from "./hud/NeuralCore";
+import { NeuralStateProvider } from "@/lib/neural-state";
+import { buildLabelMetricsContext } from "@/lib/label-metrics";
 
 type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | "insights" | string;
 
@@ -21,12 +26,15 @@ export function Dashboard() {
   const allData = useMemo(() => getAllArtistData(), []);
   const dataList = Object.values(allData);
   const labelData = useMemo(() => getLabelData(), []);
+  const metricsContext = useMemo(() => buildLabelMetricsContext(), []);
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-6 sm:px-6">
+    <NeuralStateProvider>
+      <GridBackground />
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-6 sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Image src="/logo.svg" alt="Control Music Digital" width={40} height={40} className="rounded-full" />
+          <Image src="/logo.svg" alt="Control Music Digital" width={40} height={40} className="rounded-full" style={{ filter: "drop-shadow(0 0 6px var(--accent-cyan))" }} />
           <div>
             <div className="text-sm font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
               Control Music Digital
@@ -36,7 +44,8 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <HudStatusBar />
           <span
             className="rounded-full px-2.5 py-1 text-xs font-medium"
             style={{ color: "var(--status-warning)", border: "1px solid var(--status-warning)" }}
@@ -105,7 +114,9 @@ export function Dashboard() {
         Conecta Google Ads, YouTube, Spotify, DistroKid, Instagram, TikTok, Facebook y X con credenciales reales para
         reemplazar los datos de ejemplo por metricas en vivo.
       </footer>
-    </div>
+      </div>
+      <NeuralCore metricsContext={metricsContext} />
+    </NeuralStateProvider>
   );
 }
 

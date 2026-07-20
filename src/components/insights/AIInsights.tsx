@@ -10,10 +10,9 @@ import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { PlatformId } from "@/lib/types";
 import { formatCompact, formatUSD } from "@/lib/format";
 import { Hero3DCanvas } from "./Hero3DCanvas";
-import { GeminiBananaCopilot } from "./GeminiBananaCopilot";
-import { AnimatedCounter } from "./AnimatedCounter";
-import { TiltCard } from "./TiltCard";
-import { GeminiNanoState } from "@/hooks/useGeminiNano";
+import { AnimatedCounter } from "../AnimatedCounter";
+import { TiltCard } from "../TiltCard";
+import { useNeuralState } from "@/lib/neural-state";
 
 const CHART_PLATFORMS: PlatformId[] = ["spotify", "youtube", "instagram", "tiktok", "facebook", "x"];
 
@@ -21,10 +20,9 @@ export function AIInsights() {
   const allData = useMemo(() => getAllArtistData(), []);
   const dataList = Object.values(allData);
   const labelData = useMemo(() => getLabelData(), []);
+  const { state: aiState, requestPrompt } = useNeuralState();
 
   const [chartPlatform, setChartPlatform] = useState<PlatformId>("spotify");
-  const [aiState, setAiState] = useState<GeminiNanoState>("idle");
-  const [copilotPrompt, setCopilotPrompt] = useState<string | null>(null);
   const [adSpendInput, setAdSpendInput] = useState(2000);
 
   const socialReach = ["instagram", "tiktok", "facebook", "x"].reduce(
@@ -49,29 +47,28 @@ export function AIInsights() {
     { label: "Ingresos brutos DistroKid", raw: distroRevenue, format: formatUSD },
   ];
 
-  const metricsContext = kpis.map((k) => `${k.label}: ${k.format(k.raw)}`).join(" · ");
-
   function auditArtist(artistName: string) {
-    setCopilotPrompt(`Dame un analisis rapido del rendimiento de ${artistName} y una recomendacion accionable.`);
-    setTimeout(() => setCopilotPrompt(null), 100);
+    requestPrompt(`Dame un analisis rapido del rendimiento de ${artistName} y una recomendacion accionable.`);
   }
 
   return (
-    <div
-      className="relative -mx-4 overflow-hidden rounded-3xl px-4 py-8 sm:-mx-6 sm:px-8"
-      style={{ background: "radial-gradient(circle at 20% 0%, #131a2e 0%, #0b0e14 55%, #08090d 100%)" }}
-    >
+    <div className="relative -mx-4 overflow-hidden rounded-3xl px-4 py-8 sm:-mx-6 sm:px-8" style={{ backgroundColor: "var(--surface-1)" }}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-70">
         <Hero3DCanvas aiState={aiState} />
       </div>
 
-      <div className="relative flex flex-col gap-8 text-white">
+      <div className="relative flex flex-col gap-8">
         <div className="flex flex-col items-center gap-2 pt-6 text-center">
-          <span className="flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-[11px] font-medium text-cyan-300">
-            <Sparkles size={12} /> Gemini Nano Banana &middot; IA en el dispositivo
+          <span
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium"
+            style={{ borderColor: "var(--accent-cyan)", color: "var(--accent-cyan)", backgroundColor: "color-mix(in srgb, var(--accent-cyan) 10%, transparent)" }}
+          >
+            <Sparkles size={12} /> CMD-Neural AI &middot; telemetria en tiempo real
           </span>
-          <h2 className="text-2xl font-bold sm:text-3xl">AI Insights</h2>
-          <p className="max-w-lg text-sm text-white/50">
+          <h2 className="text-2xl font-bold sm:text-3xl" style={{ color: "var(--text-primary)" }}>
+            AI Insights
+          </h2>
+          <p className="max-w-lg text-sm" style={{ color: "var(--text-muted)" }}>
             Metricas del sello con analisis en tiempo real. Datos de demostracion &mdash; conecta las cuentas reales
             para reemplazarlos.
           </p>
@@ -86,10 +83,13 @@ export function AIInsights() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.5 }}
               whileHover={{ y: -3 }}
-              className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl"
+              className="rounded-2xl p-4"
+              style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}
             >
-              <div className="text-[11px] text-white/45">{kpi.label}</div>
-              <div className="mt-1 text-xl font-bold tabular-nums">
+              <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                {kpi.label}
+              </div>
+              <div className="font-hud-mono mt-1 text-xl font-bold" style={{ color: "var(--text-primary)" }}>
                 <AnimatedCounter value={kpi.raw} format={kpi.format} />
               </div>
             </motion.div>
@@ -98,9 +98,11 @@ export function AIInsights() {
 
         {/* Analytics area */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
+          <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-white/80">Alcance por plataforma</h3>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+                Alcance por plataforma
+              </h3>
               <div className="flex flex-wrap gap-1.5">
                 {CHART_PLATFORMS.map((p) => (
                   <button
@@ -109,8 +111,8 @@ export function AIInsights() {
                     className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors"
                     style={
                       chartPlatform === p
-                        ? { background: "linear-gradient(135deg, #22d3ee, #e879f9)", color: "#04121a" }
-                        : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }
+                        ? { background: "linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta))", color: "#04121a" }
+                        : { backgroundColor: "var(--surface-1)", color: "var(--text-secondary)" }
                     }
                   >
                     <PlatformIcon platform={p} className="h-3 w-3" />
@@ -131,18 +133,18 @@ export function AIInsights() {
                   <AreaChart data={labelData.platforms[chartPlatform].series} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
                     <defs>
                       <linearGradient id="insightsFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.5} />
-                        <stop offset="100%" stopColor="#e879f9" stopOpacity={0} />
+                        <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity={0.5} />
+                        <stop offset="100%" stopColor="var(--accent-magenta)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="date" hide />
                     <Tooltip
-                      contentStyle={{ background: "rgba(13,15,23,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10 }}
-                      labelStyle={{ color: "rgba(255,255,255,0.5)" }}
-                      itemStyle={{ color: "#fff" }}
+                      contentStyle={{ background: "var(--page-plane)", border: "1px solid var(--border-hairline)", borderRadius: 10 }}
+                      labelStyle={{ color: "var(--text-muted)" }}
+                      itemStyle={{ color: "var(--text-primary)" }}
                       formatter={(v) => formatCompact(Number(v))}
                     />
-                    <Area type="monotone" dataKey="value" stroke="#22d3ee" strokeWidth={2} fill="url(#insightsFill)" />
+                    <Area type="monotone" dataKey="value" stroke="var(--accent-cyan)" strokeWidth={2} fill="url(#insightsFill)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </motion.div>
@@ -150,14 +152,16 @@ export function AIInsights() {
           </div>
 
           {/* ROI calculator */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
-            <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-white/80">
+          <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
+            <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
               <TrendingUp size={14} /> Calculadora de ROI
             </h3>
-            <p className="mb-3 text-[11px] text-white/40">
+            <p className="mb-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
               Estimado a partir de los ratios actuales del sello &mdash; no es una prediccion garantizada.
             </p>
-            <label className="mb-1 block text-[11px] text-white/50">Gasto hipotetico en Ads (USD)</label>
+            <label className="mb-1 block text-[11px]" style={{ color: "var(--text-muted)" }}>
+              Gasto hipotetico en Ads (USD)
+            </label>
             <input
               type="range"
               min={0}
@@ -165,17 +169,28 @@ export function AIInsights() {
               step={100}
               value={adSpendInput}
               onChange={(e) => setAdSpendInput(Number(e.target.value))}
-              className="w-full accent-cyan-400"
+              className="w-full"
+              style={{ accentColor: "var(--accent-cyan)" }}
             />
-            <div className="mt-1 text-lg font-bold">{formatUSD(adSpendInput)}</div>
+            <div className="font-hud-mono mt-1 text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+              {formatUSD(adSpendInput)}
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[11px] text-white/45">Ingresos estimados</div>
-                <div className="text-base font-semibold text-cyan-300">{formatUSD(projectedRevenue)}</div>
+                <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                  Ingresos estimados
+                </div>
+                <div className="font-hud-mono text-base font-semibold" style={{ color: "var(--accent-cyan)" }}>
+                  {formatUSD(projectedRevenue)}
+                </div>
               </div>
               <div>
-                <div className="text-[11px] text-white/45">Streams estimados</div>
-                <div className="text-base font-semibold text-fuchsia-300">{formatCompact(projectedStreams)}</div>
+                <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                  Streams estimados
+                </div>
+                <div className="font-hud-mono text-base font-semibold" style={{ color: "var(--accent-magenta)" }}>
+                  {formatCompact(projectedStreams)}
+                </div>
               </div>
             </div>
           </div>
@@ -183,7 +198,9 @@ export function AIInsights() {
 
         {/* Artist portfolio grid */}
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-white/80">Portafolio de artistas</h3>
+          <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+            Portafolio de artistas
+          </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {dataList.map((d, i) => (
               <motion.div
@@ -192,7 +209,7 @@ export function AIInsights() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
               >
-                <TiltCard>
+                <TiltCard className="hud-corners" style={{ backgroundColor: "var(--surface-1)" }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span
@@ -202,26 +219,39 @@ export function AIInsights() {
                         {d.artist.initials}
                       </span>
                       <div>
-                        <div className="text-sm font-semibold text-white">{d.artist.name}</div>
-                        <div className="text-[11px] text-white/45">{d.artist.genre}</div>
+                        <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                          {d.artist.name}
+                        </div>
+                        <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                          {d.artist.genre}
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => auditArtist(d.artist.name)}
-                      title="Auditoria rapida con Gemini Nano"
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-cyan-300 transition-colors hover:bg-white/10"
+                      title="Auditoria rapida con CMD-Neural AI"
+                      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+                      style={{ border: "1px solid var(--border-hairline)", backgroundColor: "var(--surface-2)", color: "var(--accent-cyan)" }}
                     >
                       <Wand2 size={14} />
                     </button>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-[11px] text-white/45">Oyentes Spotify</div>
-                      <div className="text-sm font-semibold text-white">{d.platforms.spotify.headline.value}</div>
+                      <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                        Oyentes Spotify
+                      </div>
+                      <div className="font-hud-mono text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                        {d.platforms.spotify.headline.value}
+                      </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-white/45">Suscriptores YouTube</div>
-                      <div className="text-sm font-semibold text-white">{d.platforms.youtube.headline.value}</div>
+                      <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                        Suscriptores YouTube
+                      </div>
+                      <div className="font-hud-mono text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                        {d.platforms.youtube.headline.value}
+                      </div>
                     </div>
                   </div>
                 </TiltCard>
@@ -230,8 +260,6 @@ export function AIInsights() {
           </div>
         </div>
       </div>
-
-      <GeminiBananaCopilot metricsContext={metricsContext} onStateChange={setAiState} externalPrompt={copilotPrompt} />
     </div>
   );
 }

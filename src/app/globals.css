@@ -1,84 +1,217 @@
 @import "tailwindcss";
 
-/* Control Music Digital — brand + chart tokens.
-   Dark is the brand default; data-theme="light" is an explicit opt-in. */
+/* Control Music Digital — "Deep Obsidian Space" cyberpunk HUD theme.
+   Dark is the only real theme here; light mode is kept functional (toggle still
+   works) but intentionally desaturated since neon glow doesn't read on white. */
 :root {
   color-scheme: dark;
 
-  --page-plane: #0d0d0d;
-  --surface-1: #17171b;
-  --surface-2: #1c1c21;
-  --text-primary: #ffffff;
-  --text-secondary: #c3c2b7;
-  --text-muted: #898781;
-  --gridline: #2c2c2a;
-  --baseline: #383835;
-  --border-hairline: rgba(255, 255, 255, 0.1);
+  --page-plane: #05070e;
+  --surface-1: rgba(15, 23, 42, 0.55);
+  --surface-2: rgba(21, 30, 53, 0.65);
+  --text-primary: #eef4ff;
+  --text-secondary: #a9b8d6;
+  --text-muted: #6b7a9c;
+  --gridline: rgba(0, 240, 255, 0.09);
+  --baseline: rgba(0, 240, 255, 0.22);
+  --border-hairline: rgba(0, 240, 255, 0.16);
 
-  --series-1: #3987e5; /* blue */
-  --series-2: #008300; /* green */
-  --series-3: #d55181; /* magenta */
-  --series-4: #c98500; /* yellow */
-  --series-5: #199e70; /* aqua */
-  --series-6: #d95926; /* orange */
-  --series-7: #9085e9; /* violet */
-  --series-8: #e66767; /* red */
+  --accent-cyan: #00f0ff;
+  --accent-magenta: #ff007a;
+  --accent-amber: #ffb020;
+  --accent-blue-dr: #0051ff;
+  --accent-red-dr: #ff2e4d;
 
-  --seq-100: #184f95;
-  --seq-300: #256abf;
-  --seq-500: #3987e5;
-  --seq-700: #86b6ef;
+  --series-1: #00f0ff; /* electric cyan */
+  --series-2: #0051ff; /* DR blue */
+  --series-3: #ff007a; /* glowing magenta */
+  --series-4: #ffb020; /* amber */
+  --series-5: #2ee6a8; /* signal green */
+  --series-6: #ff2e4d; /* DR red */
+  --series-7: #9d6bff; /* violet */
+  --series-8: #6be0ff; /* pale cyan */
 
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #e66767;
-  --success-text: #0ca30c;
+  --seq-100: #063b45;
+  --seq-300: #007e94;
+  --seq-500: #00f0ff;
+  --seq-700: #8af5ff;
+
+  --status-good: #2ee6a8;
+  --status-warning: #ffb020;
+  --status-serious: #ff8a3d;
+  --status-critical: #ff2e4d;
+  --success-text: #2ee6a8;
+
+  --glow-cyan: 0 0 1px rgba(0, 240, 255, 0.8), 0 0 18px rgba(0, 240, 255, 0.25);
+  --glow-magenta: 0 0 1px rgba(255, 0, 122, 0.8), 0 0 18px rgba(255, 0, 122, 0.28);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --page-plane: #f9f9f7;
-  --surface-1: #fcfcfb;
-  --surface-2: #f3f2ee;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --text-muted: #898781;
-  --gridline: #e1e0d9;
-  --baseline: #c3c2b7;
-  --border-hairline: rgba(11, 11, 11, 0.1);
+  --page-plane: #eef2fb;
+  --surface-1: rgba(255, 255, 255, 0.72);
+  --surface-2: rgba(244, 247, 255, 0.85);
+  --text-primary: #0a1330;
+  --text-secondary: #3a4568;
+  --text-muted: #6b7594;
+  --gridline: rgba(0, 81, 255, 0.08);
+  --baseline: rgba(0, 81, 255, 0.18);
+  --border-hairline: rgba(0, 81, 255, 0.16);
 
-  --series-1: #2a78d6;
-  --series-2: #008300;
-  --series-3: #e87ba4;
-  --series-4: #eda100;
-  --series-5: #1baf7a;
-  --series-6: #eb6834;
-  --series-7: #4a3aa7;
-  --series-8: #e34948;
+  --accent-cyan: #0092a8;
+  --accent-magenta: #c40062;
+  --accent-amber: #b3720a;
+  --accent-blue-dr: #0051ff;
+  --accent-red-dr: #d4213a;
 
-  --seq-100: #cde2fb;
-  --seq-300: #6da7ec;
-  --seq-500: #256abf;
-  --seq-700: #0d366b;
+  --series-1: #0092a8;
+  --series-2: #0051ff;
+  --series-3: #c40062;
+  --series-4: #b3720a;
+  --series-5: #14a37a;
+  --series-6: #d4213a;
+  --series-7: #6a3fd6;
+  --series-8: #0092a8;
 
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
-  --success-text: #006300;
+  --seq-100: #cfeef5;
+  --seq-300: #4bb9cc;
+  --seq-500: #0092a8;
+  --seq-700: #045b68;
+
+  --status-good: #14a37a;
+  --status-warning: #b3720a;
+  --status-serious: #c95a1f;
+  --status-critical: #d4213a;
+  --success-text: #0f7a58;
+
+  --glow-cyan: 0 0 12px rgba(0, 146, 168, 0.12);
+  --glow-magenta: 0 0 12px rgba(196, 0, 98, 0.12);
 }
 
 @theme inline {
   --color-background: var(--page-plane);
   --color-foreground: var(--text-primary);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-mono-hud);
 }
 
 body {
   background: var(--page-plane);
   color: var(--text-primary);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-hud-mono {
+  font-family: var(--font-mono-hud), "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glassmorphism, applied broadly via attribute-selector so the existing
+   inline-styled rounded surfaces (cards, chips, buttons) all pick it up
+   without touching every component. */
+[class*="rounded-"] {
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Ambient neon glow + HUD corner crosshairs on the main card surfaces. */
+.rounded-2xl,
+.rounded-3xl {
+  box-shadow: var(--glow-cyan), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  position: relative;
+}
+
+.hud-corners::before,
+.hud-corners::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+.hud-corners::before {
+  top: 6px;
+  left: 6px;
+  border-top: 1.5px solid var(--accent-cyan);
+  border-left: 1.5px solid var(--accent-cyan);
+}
+.hud-corners::after {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 1.5px solid var(--accent-cyan);
+  border-right: 1.5px solid var(--accent-cyan);
+}
+
+/* Fixed animated perspective grid + drifting orbs, mounted once behind the app. */
+.hud-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--page-plane);
+}
+.hud-grid-bg::before {
+  content: "";
+  position: absolute;
+  inset: -50% -50%;
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(600px) rotateX(62deg);
+  transform-origin: center top;
+  animation: grid-drift 14s linear infinite;
+  opacity: 0.55;
+}
+:root[data-theme="light"] .hud-grid-bg::before {
+  opacity: 0.35;
+}
+
+@keyframes grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 96px; }
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(24px, -18px) scale(1.08); }
+}
+
+@keyframes scanline-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+.scanline-sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.scanline-sweep::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  animation: scanline-sweep 3.2s ease-in-out infinite;
+}
+
+@keyframes core-pulse-idle {
+  0%, 100% { box-shadow: 0 0 12px 2px rgba(0, 240, 255, 0.5); }
+  50% { box-shadow: 0 0 22px 6px rgba(0, 240, 255, 0.75); }
+}
+@keyframes core-pulse-thinking {
+  0%, 100% { box-shadow: 0 0 14px 3px rgba(255, 0, 122, 0.55); }
+  50% { box-shadow: 0 0 28px 8px rgba(255, 0, 122, 0.85); }
+}
+@keyframes core-pulse-generating {
+  0%, 100% { box-shadow: 0 0 16px 4px rgba(255, 176, 32, 0.6); }
+  50% { box-shadow: 0 0 30px 9px rgba(255, 176, 32, 0.9); }
 }

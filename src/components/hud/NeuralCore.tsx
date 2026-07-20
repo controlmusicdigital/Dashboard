@@ -116,8 +116,15 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
     <>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full transition-transform hover:scale-105"
+        className="flex items-center justify-center rounded-full transition-transform hover:scale-105"
         style={{
+          position: "fixed",
+          bottom: "1.5rem",
+          right: "1.5rem",
+          left: "auto",
+          zIndex: 30,
+          height: 56,
+          width: 56,
           background: `radial-gradient(circle at 35% 30%, ${STATE_COLOR[state]}, #05070e 75%)`,
           border: `1px solid ${STATE_COLOR[state]}`,
           animation: STATE_ANIM[state],
@@ -129,8 +136,20 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
 
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-30 flex h-[520px] w-[92vw] max-w-sm flex-col overflow-hidden rounded-2xl border"
-          style={{ backgroundColor: "var(--surface-1)", borderColor: "var(--border-hairline)", color: "var(--text-primary)" }}
+          className="flex flex-col overflow-hidden rounded-2xl border"
+          style={{
+            position: "fixed",
+            bottom: "6rem",
+            right: "1.5rem",
+            left: "auto",
+            zIndex: 30,
+            height: 520,
+            width: "min(92vw, 384px)",
+            maxHeight: "calc(100vh - 8rem)",
+            backgroundColor: "var(--surface-1)",
+            borderColor: "var(--border-hairline)",
+            color: "var(--text-primary)",
+          }}
         >
           <div className="scanline-sweep" />
           <div className="relative flex items-center justify-between gap-2 border-b px-4 py-3.5" style={{ borderColor: "var(--border-hairline)" }}>

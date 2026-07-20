@@ -7,7 +7,7 @@ export function PlatformCard({ snapshot }: { snapshot: PlatformSnapshot }) {
   const meta = PLATFORM_META[snapshot.platform];
   return (
     <div
-      className="flex flex-col gap-4 rounded-2xl p-5"
+      className="flex min-w-0 flex-col gap-4 rounded-2xl p-5"
       style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
     >
       <div className="flex items-center justify-between">

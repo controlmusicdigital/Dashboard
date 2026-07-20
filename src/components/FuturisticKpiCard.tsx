@@ -76,7 +76,7 @@ export function FuturisticKpiCard({
       onPointerLeave={handlePointerLeave}
       style={{ rotateX, rotateY, transformPerspective: 800, backgroundColor: "var(--surface-2)", borderColor: "var(--border-hairline)" }}
       whileHover={{ scale: 1.015 }}
-      className="hud-corners group relative flex flex-col gap-1 overflow-hidden rounded-2xl border p-3.5"
+      className="hud-corners group relative flex min-w-0 flex-col gap-1 overflow-hidden rounded-2xl border p-3.5"
     >
       <motion.div
         aria-hidden

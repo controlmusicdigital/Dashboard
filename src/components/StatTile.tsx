@@ -19,7 +19,7 @@ export function DeltaBadge({ deltaPct }: { deltaPct: number }) {
 export function StatTile({ label, value, deltaPct }: { label: string; value: string; deltaPct: number }) {
   return (
     <div
-      className="flex flex-col gap-1 rounded-xl p-3"
+      className="flex min-w-0 flex-col gap-1 rounded-xl p-3"
       style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}
     >
       <span className="text-xs" style={{ color: "var(--text-muted)" }}>

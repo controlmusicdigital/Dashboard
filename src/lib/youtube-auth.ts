@@ -1,10 +1,9 @@
 import "server-only";
-import fs from "fs";
-import path from "path";
 import crypto from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 
-const ROOT = path.join(process.cwd(), ".data", "youtube-tokens");
 const STATE_SECRET = process.env.AUTH_SECRET || "cmd-dev-insecure-secret-change-me";
+const COOKIE_PREFIX = "cmd-yt-";
 
 const SCOPES = ["https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/yt-analytics.readonly"];
 
@@ -19,29 +18,49 @@ export function isYouTubeOAuthConfigured(): boolean {
   return Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET);
 }
 
-function ensureDir() {
-  fs.mkdirSync(ROOT, { recursive: true });
+function sign(payload: string): string {
+  return crypto.createHmac("sha256", STATE_SECRET).update(payload).digest("base64url");
 }
 
-function tokenPath(artistId: string): string {
-  return path.join(ROOT, `${artistId}.json`);
+function cookieName(artistId: string): string {
+  return `${COOKIE_PREFIX}${artistId}`;
 }
 
-export function getStoredTokens(artistId: string): YouTubeTokens | null {
+// Tokens are stored in a signed, httpOnly cookie rather than a server-side file:
+// Vercel's serverless functions have a read-only filesystem in production, so a
+// file written by one invocation isn't reliably visible to the next one.
+function encodeTokens(tokens: YouTubeTokens): string {
+  const payload = Buffer.from(JSON.stringify(tokens)).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+function decodeTokens(value: string | undefined): YouTubeTokens | null {
+  if (!value) return null;
+  const [payload, sig] = value.split(".");
+  if (!payload || !sig || sign(payload) !== sig) return null;
   try {
-    return JSON.parse(fs.readFileSync(tokenPath(artistId), "utf8")) as YouTubeTokens;
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as YouTubeTokens;
   } catch {
     return null;
   }
 }
 
-export function saveTokens(artistId: string, tokens: YouTubeTokens) {
-  ensureDir();
-  fs.writeFileSync(tokenPath(artistId), JSON.stringify(tokens, null, 2));
+export function getStoredTokens(req: NextRequest, artistId: string): YouTubeTokens | null {
+  return decodeTokens(req.cookies.get(cookieName(artistId))?.value);
 }
 
-export function deleteTokens(artistId: string) {
-  fs.rmSync(tokenPath(artistId), { force: true });
+export function setTokensCookie(res: NextResponse, artistId: string, tokens: YouTubeTokens) {
+  res.cookies.set(cookieName(artistId), encodeTokens(tokens), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 180,
+  });
+}
+
+export function clearTokensCookie(res: NextResponse, artistId: string) {
+  res.cookies.delete(cookieName(artistId));
 }
 
 // Signed, tamper-proof "state" param so the callback can trust which artist initiated
@@ -101,7 +120,7 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
   };
 }
 
-async function refreshAccessToken(artistId: string, tokens: YouTubeTokens): Promise<YouTubeTokens> {
+async function refreshAccessToken(tokens: YouTubeTokens): Promise<YouTubeTokens> {
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -114,20 +133,21 @@ async function refreshAccessToken(artistId: string, tokens: YouTubeTokens): Prom
   });
   if (!res.ok) throw new Error(`Google respondio ${res.status} al refrescar el token`);
   const data = await res.json();
-  const next: YouTubeTokens = {
-    ...tokens,
-    accessToken: data.access_token,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  };
-  saveTokens(artistId, next);
-  return next;
+  return { ...tokens, accessToken: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
 }
 
-/** Returns a valid access token for this artist, refreshing it first if needed. */
-export async function getValidAccessToken(artistId: string): Promise<string | null> {
-  const tokens = getStoredTokens(artistId);
+/**
+ * Returns a valid access token for this artist, refreshing it first if needed. When a
+ * refresh happens, the caller must persist `refreshed` back onto its response via
+ * `setTokensCookie` (this function has no response to attach a Set-Cookie to itself).
+ */
+export async function getValidAccessToken(
+  req: NextRequest,
+  artistId: string
+): Promise<{ accessToken: string; refreshed?: YouTubeTokens } | null> {
+  const tokens = getStoredTokens(req, artistId);
   if (!tokens) return null;
-  if (Date.now() < tokens.expiresAt - 60_000) return tokens.accessToken;
-  const refreshed = await refreshAccessToken(artistId, tokens);
-  return refreshed.accessToken;
+  if (Date.now() < tokens.expiresAt - 60_000) return { accessToken: tokens.accessToken };
+  const refreshed = await refreshAccessToken(tokens);
+  return { accessToken: refreshed.accessToken, refreshed };
 }

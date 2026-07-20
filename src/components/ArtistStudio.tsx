@@ -52,6 +52,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [imagePrompt, setImagePrompt] = useState("");
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [aspect, setAspect] = useState(ASPECTS[0]);
   const [overlayText, setOverlayText] = useState("");
   const [stickerPos, setStickerPos] = useState({ x: 50, y: 80 });
@@ -150,15 +151,15 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
 
   async function handleGenerateImage() {
     if (!imagePrompt.trim()) {
-      setError("Describe la imagen que quieres generar.");
+      setImageError("Describe la imagen que quieres generar.");
       return;
     }
     if (STATIC_DEMO) {
-      setError(STATIC_DEMO_NOTE);
+      setImageError(STATIC_DEMO_NOTE);
       return;
     }
     setGeneratingImage(true);
-    setError(null);
+    setImageError(null);
     try {
       const res = await fetch("/api/generate-image", {
         method: "POST",
@@ -171,7 +172,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       setMediaType("image");
       setMediaUrl(data.dataUrl as string);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo generar la imagen");
+      setImageError(err instanceof Error ? err.message : "No se pudo generar la imagen");
     } finally {
       setGeneratingImage(false);
     }
@@ -342,6 +343,11 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
               {generatingImage ? "Generando..." : "Generar imagen"}
             </button>
           </div>
+          {imageError && (
+            <p className="-mt-2 text-xs" style={{ color: "var(--status-critical)" }}>
+              {imageError}
+            </p>
+          )}
 
           <input
             value={overlayText}

@@ -4,7 +4,7 @@ import { getArtist } from "@/lib/artists";
 import { buildSystemPrompt } from "@/lib/claude/persona";
 import { mockReply } from "@/lib/claude/mock";
 import { requireArtistAccess } from "@/lib/auth";
-import { streamChatGPTText } from "@/lib/ai/providers";
+import { streamChatGPTText, streamGeminiText } from "@/lib/ai/providers";
 
 export const runtime = "nodejs";
 
@@ -26,6 +26,28 @@ function textStream(chunks: string[], delayMs: number): ReadableStream<Uint8Arra
   });
 }
 
+function providerStream(
+  generate: () => AsyncGenerator<string>,
+  providerLabel: string,
+  fallback: () => string
+): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const delta of generate()) {
+          controller.enqueue(encoder.encode(delta));
+        }
+        controller.close();
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        controller.enqueue(encoder.encode(`${fallback()}\n\n[Nota: no se pudo contactar a ${providerLabel}: ${reason}]`));
+        controller.close();
+      }
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const artistId = body?.artistId as string | undefined;
@@ -39,64 +61,49 @@ export async function POST(req: NextRequest) {
   if (denied) return denied;
 
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
+  const fallback = () => mockReply(artist, lastUserMessage);
 
-  if (!apiKey && openaiKey) {
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream<Uint8Array>({
-      async start(controller) {
-        try {
-          for await (const delta of streamChatGPTText(buildSystemPrompt(artist), messages)) {
-            controller.enqueue(encoder.encode(delta));
-          }
-          controller.close();
-        } catch (err) {
-          const reason = err instanceof Error ? err.message : String(err);
-          const mock = mockReply(artist, lastUserMessage);
-          controller.enqueue(encoder.encode(`${mock}\n\n[Nota: no se pudo contactar a ChatGPT: ${reason}]`));
-          controller.close();
-        }
-      },
+  // Gemini first: it has a free tier, so it works without any billing configured.
+  if (geminiKey) {
+    return new Response(providerStream(() => streamGeminiText(buildSystemPrompt(artist), messages), "Gemini", fallback), {
+      headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "gemini" },
     });
-    return new Response(stream, {
+  }
+
+  if (anthropicKey) {
+    const client = new Anthropic({ apiKey: anthropicKey });
+    const systemPrompt = buildSystemPrompt(artist);
+    const claudeMessages = messages.map((m) => ({ role: m.role, content: m.content }));
+    async function* streamClaude() {
+      const claudeStream = client.messages.stream({
+        model: "claude-opus-4-8",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: claudeMessages,
+      });
+      for await (const event of claudeStream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          yield event.delta.text;
+        }
+      }
+    }
+    return new Response(providerStream(streamClaude, "Claude", fallback), {
+      headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "claude-opus-4-8" },
+    });
+  }
+
+  if (openaiKey) {
+    return new Response(providerStream(() => streamChatGPTText(buildSystemPrompt(artist), messages), "ChatGPT", fallback), {
       headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "chatgpt" },
     });
   }
 
-  if (!apiKey) {
-    const mock = mockReply(artist, lastUserMessage);
-    const words = mock.split(" ").map((w, i) => (i === 0 ? w : ` ${w}`));
-    return new Response(textStream(words, 45), {
-      headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "mock" },
-    });
-  }
-
-  const client = new Anthropic({ apiKey });
-  const encoder = new TextEncoder();
-
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        const claudeStream = client.messages.stream({
-          model: "claude-opus-4-8",
-          max_tokens: 1024,
-          system: buildSystemPrompt(artist),
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
-        });
-        claudeStream.on("text", (delta) => controller.enqueue(encoder.encode(delta)));
-        await claudeStream.finalMessage();
-        controller.close();
-      } catch (err) {
-        const reason = err instanceof Error ? err.message : String(err);
-        const mock = mockReply(artist, lastUserMessage);
-        controller.enqueue(encoder.encode(`${mock}\n\n[Nota: no se pudo contactar a Claude: ${reason}]`));
-        controller.close();
-      }
-    },
-  });
-
-  return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "claude-opus-4-8" },
+  const mock = fallback();
+  const words = mock.split(" ").map((w, i) => (i === 0 ? w : ` ${w}`));
+  return new Response(textStream(words, 45), {
+    headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "mock" },
   });
 }

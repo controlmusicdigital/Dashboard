@@ -8,7 +8,7 @@ export interface NewsItem {
 
 export interface NewsResult {
   items: NewsItem[];
-  source: "claude" | "mock";
+  source: "gemini" | "claude" | "mock";
   generatedAt: string;
   note?: string;
 }

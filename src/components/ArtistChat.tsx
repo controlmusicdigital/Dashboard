@@ -12,7 +12,7 @@ interface ChatMessage {
   content: string;
 }
 
-type ChatProvider = "claude" | "chatgpt" | null;
+type ChatProvider = "gemini" | "claude" | "chatgpt" | null;
 
 export function ArtistChat({ artist }: { artist: Artist }) {
   const [provider, setProvider] = useState<ChatProvider>(null);
@@ -42,7 +42,7 @@ export function ArtistChat({ artist }: { artist: Artist }) {
     fetch("/api/chat/status")
       .then((r) => r.json())
       .then((d) => {
-        setProvider(d.claude ? "claude" : d.chatgpt ? "chatgpt" : null);
+        setProvider(d.gemini ? "gemini" : d.claude ? "claude" : d.chatgpt ? "chatgpt" : null);
         setChecked(true);
       })
       .catch(() => setChecked(true));
@@ -124,7 +124,11 @@ export function ArtistChat({ artist }: { artist: Artist }) {
               Chat con {artist.name}
             </div>
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-              {provider === "chatgpt" ? "Impulsado por ChatGPT" : "Impulsado por Claude Opus 4.8"}
+              {provider === "gemini"
+                ? "Impulsado por Gemini"
+                : provider === "chatgpt"
+                  ? "Impulsado por ChatGPT"
+                  : "Impulsado por Claude Opus 4.8"}
             </div>
           </div>
         </div>
@@ -167,7 +171,7 @@ export function ArtistChat({ artist }: { artist: Artist }) {
               <p className="max-w-xs text-xs">
                 {STATIC_DEMO
                   ? "Demo estatica (GitHub Pages) — el chat en vivo necesita la app completa con servidor."
-                  : "Sin ANTHROPIC_API_KEY ni OPENAI_API_KEY configuradas todavia — las respuestas son de ejemplo."}
+                  : "Sin GEMINI_API_KEY, ANTHROPIC_API_KEY ni OPENAI_API_KEY configuradas todavia — las respuestas son de ejemplo."}
               </p>
             )}
           </div>

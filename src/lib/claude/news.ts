@@ -2,6 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { NewsItem, NewsResult } from "../news-types";
 import { mockNews } from "./news-mock";
+import { requestGeminiWithTools } from "../ai/providers";
 
 const NEWS_PROMPT = `Busca las noticias mas recientes y relevantes (idealmente de las ultimas 48 horas) sobre
 la industria musical y la farandula de Republica Dominicana: dembow, bachata, urbano, merengue, sellos
@@ -43,43 +44,75 @@ function parseNewsJSON(raw: string): NewsItem[] {
     .slice(0, 8);
 }
 
-export async function fetchIndustryNews(): Promise<NewsResult> {
+async function fetchNewsWithGemini(): Promise<NewsItem[]> {
+  const text = await requestGeminiWithTools(NEWS_PROMPT, [{ google_search: {} }]);
+  const items = parseNewsJSON(text);
+  if (items.length === 0) throw new Error("La busqueda no devolvio noticias");
+  return items;
+}
+
+async function fetchNewsWithClaude(): Promise<NewsItem[]> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY no esta configurada");
+
+  const client = new Anthropic({ apiKey });
+  const response = await client.messages.create({
+    model: "claude-opus-4-8",
+    max_tokens: 2048,
+    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
+    messages: [{ role: "user", content: NEWS_PROMPT }],
+  });
+
+  const textBlocks = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
+  const lastText = textBlocks[textBlocks.length - 1];
+  if (!lastText) throw new Error("Claude no devolvio texto");
+
+  const items = parseNewsJSON(lastText.text);
+  if (items.length === 0) throw new Error("La busqueda no devolvio noticias");
+  return items;
+}
+
+export async function fetchIndustryNews(): Promise<NewsResult> {
   const generatedAt = new Date().toISOString();
 
-  if (!apiKey) {
-    return {
-      items: mockNews(),
-      source: "mock",
-      generatedAt,
-      note: "No hay ANTHROPIC_API_KEY configurada. Mostrando noticias de ejemplo.",
-    };
+  // Gemini first: it has a free tier, so this works without any billing configured.
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const items = await fetchNewsWithGemini();
+      return { items, source: "gemini", generatedAt };
+    } catch (err) {
+      if (!process.env.ANTHROPIC_API_KEY) {
+        const reason = err instanceof Error ? err.message : String(err);
+        return {
+          items: mockNews(),
+          source: "mock",
+          generatedAt,
+          note: `No se pudo buscar noticias en vivo con Gemini (${reason}). Mostrando ejemplo.`,
+        };
+      }
+      // fall through to Claude below
+    }
   }
 
-  try {
-    const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 2048,
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
-      messages: [{ role: "user", content: NEWS_PROMPT }],
-    });
-
-    const textBlocks = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text");
-    const lastText = textBlocks[textBlocks.length - 1];
-    if (!lastText) throw new Error("Claude no devolvio texto");
-
-    const items = parseNewsJSON(lastText.text);
-    if (items.length === 0) throw new Error("La busqueda no devolvio noticias");
-
-    return { items, source: "claude", generatedAt };
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    return {
-      items: mockNews(),
-      source: "mock",
-      generatedAt,
-      note: `No se pudo buscar noticias en vivo (${reason}). Mostrando ejemplo.`,
-    };
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      const items = await fetchNewsWithClaude();
+      return { items, source: "claude", generatedAt };
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      return {
+        items: mockNews(),
+        source: "mock",
+        generatedAt,
+        note: `No se pudo buscar noticias en vivo con Claude (${reason}). Mostrando ejemplo.`,
+      };
+    }
   }
+
+  return {
+    items: mockNews(),
+    source: "mock",
+    generatedAt,
+    note: "No hay GEMINI_API_KEY ni ANTHROPIC_API_KEY configurada. Mostrando noticias de ejemplo.",
+  };
 }

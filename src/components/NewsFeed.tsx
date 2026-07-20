@@ -13,7 +13,7 @@ const REFRESH_MS = 60 * 60 * 1000; // 1 hour
 
 export function NewsFeed() {
   const [items, setItems] = useState<NewsItem[]>([]);
-  const [source, setSource] = useState<"claude" | "mock" | null>(null);
+  const [source, setSource] = useState<"gemini" | "claude" | "mock" | null>(null);
   const [note, setNote] = useState<string | undefined>();
   const [generatedAt, setGeneratedAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,11 +106,11 @@ export function NewsFeed() {
           <span
             className="rounded-full px-2.5 py-1 text-xs font-medium"
             style={{
-              color: source === "claude" ? "var(--status-good)" : "var(--status-warning)",
-              border: `1px solid ${source === "claude" ? "var(--status-good)" : "var(--status-warning)"}`,
+              color: source === "mock" ? "var(--status-warning)" : "var(--status-good)",
+              border: `1px solid ${source === "mock" ? "var(--status-warning)" : "var(--status-good)"}`,
             }}
           >
-            {source === "claude" ? "Busqueda en vivo" : "Datos de ejemplo"}
+            {source === "mock" ? "Datos de ejemplo" : "Busqueda en vivo"}
           </span>
           <button
             onClick={load}

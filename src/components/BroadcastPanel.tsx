@@ -14,6 +14,23 @@ const PLATFORMS: { id: BroadcastPlatform; label: string; color: string }[] = [
   { id: "whatsapp", label: "WhatsApp", color: "#25D366" },
 ];
 
+const SETUP_STEPS: Record<BroadcastPlatform, string[]> = {
+  telegram: [
+    "Abre Telegram, busca a @BotFather y mandale /newbot. Sigue los pasos — te da un token (ej. 123456:ABC-DEF...).",
+    "Agrega ese bot a tu canal o grupo de difusion (como administrador si es un canal).",
+    'Consigue el chat_id: manda un mensaje al canal/grupo y visita api.telegram.org/bot<token>/getUpdates en el navegador, o usa el bot @userinfobot.',
+    "En Vercel: Settings -> Environment Variables, agrega TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID.",
+    'Ve a Deployments, abre el mas reciente y elige "Redeploy" para que tome las llaves nuevas.',
+  ],
+  whatsapp: [
+    "Ve a developers.facebook.com, crea una app tipo Business y agrega el producto WhatsApp.",
+    "En la configuracion rapida veras un token de acceso y un ID de numero de telefono (para produccion, genera un token permanente en Configuracion del negocio -> Usuarios del sistema).",
+    "Mientras la app este en modo desarrollo, agrega el numero de destino como destinatario de prueba.",
+    "En Vercel: Settings -> Environment Variables, agrega WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_TO (el numero que recibira los mensajes).",
+    'Ve a Deployments, abre el mas reciente y elige "Redeploy" para que tome las llaves nuevas.',
+  ],
+};
+
 function PlatformGlyph({ id, color }: { id: BroadcastPlatform; color: string }) {
   return (
     <span
@@ -50,6 +67,10 @@ export function BroadcastPanel() {
   const [media, setMedia] = useState<BroadcastMedia | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [guideOpen, setGuideOpen] = useState<BroadcastPlatform | null>(null);
+  const [verifying, setVerifying] = useState<BroadcastPlatform | null>(null);
+  const [verifyResult, setVerifyResult] = useState<Partial<Record<BroadcastPlatform, { ok: boolean; detail: string }>>>({});
+
   useEffect(() => {
     if (STATIC_DEMO) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
@@ -78,6 +99,26 @@ export function BroadcastPanel() {
       else next.add(id);
       return next;
     });
+  }
+
+  async function handleVerify(platform: BroadcastPlatform) {
+    if (STATIC_DEMO) return;
+    setVerifying(platform);
+    setVerifyResult((prev) => ({ ...prev, [platform]: undefined }));
+    try {
+      const res = await fetch("/api/broadcast/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+      });
+      const data = await res.json();
+      setVerifyResult((prev) => ({ ...prev, [platform]: data }));
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      setVerifyResult((prev) => ({ ...prev, [platform]: { ok: false, detail: `No se pudo verificar: ${reason}` } }));
+    } finally {
+      setVerifying(null);
+    }
   }
 
   async function handleGenerate() {
@@ -178,9 +219,80 @@ export function BroadcastPanel() {
         </h2>
         <p className="mt-1 max-w-2xl text-xs" style={{ color: "var(--text-muted)" }}>
           Manda un mensaje — con foto o video si quieres — por Telegram, WhatsApp, o los dos a la vez. Cada uno se
-          envia de verdad en cuanto configures sus credenciales en <code>.env.local</code>; sin configurar, se simula
-          y queda marcado como tal.
+          envia de verdad en cuanto los conectes abajo; sin conectar, se simula y queda marcado como tal.
         </p>
+      </div>
+
+      <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
+        <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+          Conectar
+        </h3>
+        <div className="flex flex-col gap-3">
+          {PLATFORMS.map((p) => {
+            const configured = status?.[p.id];
+            const result = verifyResult[p.id];
+            const isVerifying = verifying === p.id;
+            const isGuideOpen = guideOpen === p.id;
+            return (
+              <div key={p.id} className="rounded-xl p-3.5" style={{ border: "1px solid var(--border-hairline)", backgroundColor: "var(--surface-2)" }}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <PlatformGlyph id={p.id} color={p.color} />
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                        {p.label}
+                      </div>
+                      <div
+                        className="flex items-center gap-1.5 text-xs"
+                        style={{ color: configured ? "var(--status-good)" : "var(--text-muted)" }}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: configured ? "var(--status-good)" : "var(--text-muted)" }} />
+                        {configured ? "Credenciales configuradas" : "No configurado"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setGuideOpen(isGuideOpen ? null : p.id)}
+                      className="rounded-full px-3 py-1.5 text-xs font-medium"
+                      style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
+                    >
+                      {isGuideOpen ? "Ocultar pasos" : configured ? "Ver pasos" : "Como conectar"}
+                    </button>
+                    <button
+                      onClick={() => handleVerify(p.id)}
+                      disabled={isVerifying}
+                      className="rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
+                      style={{ backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }}
+                    >
+                      {isVerifying ? "Verificando..." : "Verificar conexion"}
+                    </button>
+                  </div>
+                </div>
+
+                {result && (
+                  <p className="mt-2.5 text-xs" style={{ color: result.ok ? "var(--status-good)" : "var(--status-critical)" }}>
+                    {result.ok ? "✓ " : "✕ "}
+                    {result.detail}
+                  </p>
+                )}
+
+                {isGuideOpen && (
+                  <ol className="mt-3 flex flex-col gap-1.5 border-t pt-3 text-xs" style={{ borderColor: "var(--border-hairline)", color: "var(--text-secondary)" }}>
+                    {SETUP_STEPS[p.id].map((step, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="shrink-0 font-semibold" style={{ color: "var(--text-muted)" }}>
+                          {i + 1}.
+                        </span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>

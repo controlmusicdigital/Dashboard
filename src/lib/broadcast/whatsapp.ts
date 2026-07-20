@@ -1,6 +1,29 @@
 import "server-only";
-import { BroadcastMedia, BroadcastResult } from "../broadcast-types";
+import { BroadcastMedia, BroadcastResult, BroadcastVerifyResult } from "../broadcast-types";
 import { dataUrlToBlob } from "./media";
+
+export async function verifyWhatsappConnection(): Promise<BroadcastVerifyResult> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const to = process.env.WHATSAPP_TO;
+  if (!token || !phoneNumberId || !to) {
+    return { ok: false, detail: "Falta WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID o WHATSAPP_TO." };
+  }
+  try {
+    const res = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}?fields=verified_name,display_phone_number`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    return {
+      ok: true,
+      detail: `Conectado: ${data.verified_name || "numero verificado"} (${data.display_phone_number || phoneNumberId}). Enviando a: ${to}.`,
+    };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    return { ok: false, detail: `Las credenciales no funcionaron: ${reason}` };
+  }
+}
 
 async function uploadMedia(phoneNumberId: string, token: string, media: BroadcastMedia): Promise<string> {
   const blob = dataUrlToBlob(media.dataUrl, media.mimeType);

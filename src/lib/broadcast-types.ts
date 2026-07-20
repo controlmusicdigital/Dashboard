@@ -12,3 +12,8 @@ export interface BroadcastResult {
   simulated: boolean;
   detail: string;
 }
+
+export interface BroadcastVerifyResult {
+  ok: boolean;
+  detail: string;
+}

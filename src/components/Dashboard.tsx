@@ -12,8 +12,9 @@ import { TeamPanel } from "./TeamPanel";
 import { BroadcastPanel } from "./BroadcastPanel";
 import { CommentsInbox } from "./CommentsInbox";
 import { FileShare } from "./FileShare";
+import { AIInsights } from "./insights/AIInsights";
 
-type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | string;
+type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | "insights" | string;
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -68,6 +69,9 @@ export function Dashboard() {
         <TabButton active={view === "files"} onClick={() => setView("files")}>
           Archivos
         </TabButton>
+        <TabButton active={view === "insights"} onClick={() => setView("insights")}>
+          AI Insights
+        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -90,6 +94,8 @@ export function Dashboard() {
           <CommentsInbox />
         ) : view === "files" ? (
           <FileShare />
+        ) : view === "insights" ? (
+          <AIInsights />
         ) : (
           <ArtistView data={allData[view]} />
         )}

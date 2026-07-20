@@ -239,6 +239,26 @@ no un modelo entrenado ni nada que se comparta entre dispositivos. La pestana "M
 seccion "Lo que ha aprendido el panel" que muestra esos patrones de forma transparente, con un
 boton "Olvidar todo" para resetear cuando quieras.
 
+## AI Insights (Gemini Nano Banana)
+
+Pestana separada del resto del panel, con su propio tema visual (neon oscuro, glassmorphism, esfera de
+particulas 3D con `@react-three/fiber`) para no tocar el diseno del resto de la app. Incluye un ribbon de
+KPIs animados del sello, un grafico de alcance por plataforma, una calculadora de ROI estimado, y una
+grilla de artistas con tarjetas 3D (`src/components/insights/`).
+
+El widget flotante "Gemini Nano Banana" (`GeminiBananaCopilot.tsx`) es un copiloto de datos con dos capas:
+
+1. **En el dispositivo**: si el navegador expone la Prompt API de Chrome para Gemini Nano (`window.LanguageModel`
+   o `window.ai.languageModel` — API experimental, solo en Chrome Canary/Dev con el flag "Prompt API for Gemini
+   Nano" activado), responde ahi mismo, sin red (`src/hooks/useGeminiNano.ts`).
+2. **Respaldo en servidor**: si no esta disponible (la gran mayoria de navegadores hoy), cae automaticamente a
+   Claude Opus 4.8 via `/api/insights-copilot`, con el mismo patron mock-first del resto del panel si no hay
+   `ANTHROPIC_API_KEY` configurada. El widget siempre deja claro cual de las dos fuentes respondio.
+
+Cada tarjeta de artista tiene un boton de "auditoria rapida" que le manda un prompt pre-armado al copiloto.
+En la demo estatica de GitHub Pages, el respaldo en servidor tambien esta deshabilitado (no hay servidor),
+asi que sin Gemini Nano detectado el widget muestra el aviso estandar de demo estatica.
+
 ## Proximos pasos para datos en vivo
 
 Sustituir `getArtistData` / `getAllArtistData` en `src/lib/mock-data.ts` por llamadas reales:

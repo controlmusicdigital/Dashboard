@@ -372,12 +372,12 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
               Pega un link (YouTube, TikTok, Instagram, un articulo...) y Claude lo lee y arma un post inspirado en
               ese contenido.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://..."
-                className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
+                className="min-w-0 flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
                 style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
               />
               <button

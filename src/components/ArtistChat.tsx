@@ -87,7 +87,7 @@ export function ArtistChat({ artist }: { artist: Artist }) {
       className="flex h-[600px] flex-col overflow-hidden rounded-2xl"
       style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
     >
-      <div className="flex items-center justify-between border-b px-5 py-3.5" style={{ borderColor: "var(--border-hairline)" }}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3.5" style={{ borderColor: "var(--border-hairline)" }}>
         <div className="flex items-center gap-3">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold"

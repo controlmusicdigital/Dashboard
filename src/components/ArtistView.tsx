@@ -36,7 +36,7 @@ export function ArtistView({ data }: { data: ArtistData }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 rounded-full p-1" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
+        <div className="flex w-full flex-wrap gap-2 rounded-full p-1 sm:w-auto" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}>
           <SubTabButton active={subView === "metrics"} onClick={() => setSubView("metrics")}>
             Metricas
           </SubTabButton>

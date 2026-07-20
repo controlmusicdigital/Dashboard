@@ -21,7 +21,7 @@ export function Dashboard() {
   const labelData = useMemo(() => getLabelData(), []);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex min-h-screen w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-6 sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Image src="/logo.svg" alt="Control Music Digital" width={40} height={40} className="rounded-full" />

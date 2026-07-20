@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+  <circle cx="500" cy="500" r="492" fill="#000000"/>
+  <polygon points="500.00,80.00 803.11,255.00 803.11,605.00 500.00,780.00 196.89,605.00 196.89,255.00" fill="none" stroke="#8a8a8a" stroke-width="4"/>
+  <g>
+    <path d="M 759.81,280.00 L 500.00,130.00 L 240.19,280.00 L 240.19,580.00 L 500.00,730.00 L 759.81,580.00" fill="none" stroke="#ffffff" stroke-width="46" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 704.38,312.00 L 500.00,194.00 L 295.62,312.00 L 295.62,548.00 L 500.00,666.00 L 704.38,548.00" fill="none" stroke="#ffffff" stroke-width="40" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 654.15,341.00 L 500.00,252.00 L 345.85,341.00 L 345.85,519.00 L 500.00,608.00 L 654.15,519.00" fill="none" stroke="#ffffff" stroke-width="34" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 609.12,367.00 L 500.00,304.00 L 390.88,367.00 L 390.88,493.00 L 500.00,556.00 L 609.12,493.00" fill="none" stroke="#ffffff" stroke-width="28" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <text x="500" y="808" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="52" letter-spacing="0" fill="#ffffff">CONTROL MUSIC DIGITAL</text>
+  <text x="500" y="860" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="500" font-size="28" letter-spacing="9" fill="#ffffff">DISTRIBUTION</text>
+</svg>

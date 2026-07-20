@@ -50,7 +50,7 @@ function YouTubeConnectPanel({ artistId, onConnectionChange }: { artistId: strin
       setConfigured(Boolean(data.configured));
       setConnected(Boolean(data.connected));
       setChannel(data.channel ?? null);
-      setDebugInfo(data.debug ?? null);
+      setDebugInfo(data.debug || data.error ? { ...data.debug, apiError: data.error } : null);
       onConnectionChange?.(Boolean(data.connected));
     } catch {
       setConfigured(false);

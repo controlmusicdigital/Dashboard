@@ -14,6 +14,7 @@ import {
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { formatUSD } from "@/lib/format";
 import { logActivity } from "@/lib/team";
+import { getSuggested, recordChoice } from "@/lib/memory";
 
 const CAMPAIGN_PLATFORMS: CampaignPlatformId[] = ["googleAds", "instagram", "tiktok", "facebook", "youtube", "x"];
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
@@ -56,7 +57,14 @@ export function ArtistCampaigns({ artist }: { artist: Artist }) {
       .then((r) => r.json())
       .then(setAiStatus)
       .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
-  }, []);
+
+    const suggestedProvider = getSuggested(`campaigns:${artist.id}`, "provider");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
+    if (suggestedProvider === "gemini" || suggestedProvider === "chatgpt") setProvider(suggestedProvider);
+
+    const suggestedObjective = getSuggested(`campaigns:${artist.id}`, "objective") as CampaignObjective | undefined;
+    if (suggestedObjective && OBJECTIVES.includes(suggestedObjective)) setObjective(suggestedObjective);
+  }, [artist.id]);
 
   function togglePlatform(id: CampaignPlatformId) {
     setPlatforms((prev) => {
@@ -84,6 +92,8 @@ export function ArtistCampaigns({ artist }: { artist: Artist }) {
       if (!res.ok) throw new Error(data?.error || "No se pudo generar el copy");
       setContent(data as AdContent);
       setActiveVariant("instagram");
+      recordChoice(`campaigns:${artist.id}`, "provider", provider);
+      recordChoice(`campaigns:${artist.id}`, "objective", objective);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo generar el copy");
     } finally {

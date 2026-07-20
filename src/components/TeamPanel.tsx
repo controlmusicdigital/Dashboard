@@ -13,6 +13,7 @@ import {
   removeMember,
   setCurrentUser,
 } from "@/lib/team";
+import { MemorySummaryRow, forgetAll, getMemorySummary, keyLabel, scopeLabel } from "@/lib/memory";
 
 const ROLE_LABEL: Record<TeamRole, string> = {
   admin: "Administrador",
@@ -41,6 +42,7 @@ export function TeamPanel() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamRole>("editor");
   const [sent, setSent] = useState<string | null>(null);
+  const [memory, setMemory] = useState<MemorySummaryRow[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is only readable client-side, unavailable during SSR
@@ -49,7 +51,13 @@ export function TeamPanel() {
     const user = getCurrentUser();
     setCurrentUserState(user);
     setNameDraft(user);
+    setMemory(getMemorySummary());
   }, []);
+
+  function handleForget() {
+    forgetAll();
+    setMemory(getMemorySummary());
+  }
 
   function handleInvite() {
     if (!name.trim() || !email.trim()) return;
@@ -239,6 +247,52 @@ export function TeamPanel() {
             ))
           )}
         </div>
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+              Lo que ha aprendido el panel
+            </h3>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              Cada vez que generas contenido o difundes un mensaje, el panel recuerda que proveedor de IA y que
+              plataformas usaste mas — y las deja preseleccionadas la proxima vez. Es conteo local en este
+              navegador, no un modelo entrenado; se puede olvidar en cualquier momento.
+            </p>
+          </div>
+          {memory.length > 0 && (
+            <button
+              onClick={handleForget}
+              className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium"
+              style={{ border: "1px solid var(--status-critical)", color: "var(--status-critical)" }}
+            >
+              Olvidar todo
+            </button>
+          )}
+        </div>
+        {memory.length === 0 ? (
+          <div className="rounded-2xl px-4 py-6 text-center text-xs" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)", color: "var(--text-muted)" }}>
+            Todavia no hay patrones aprendidos. Genera contenido o manda una difusion y va a aparecer aqui.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {memory.slice(0, 12).map((row) => (
+              <div
+                key={`${row.scope}:${row.key}:${row.value}`}
+                className="flex items-center justify-between gap-3 rounded-xl px-4 py-2.5 text-xs"
+                style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
+              >
+                <span style={{ color: "var(--text-primary)" }}>
+                  {scopeLabel(row.scope)} → {keyLabel(row.key)}: <b>{row.value}</b>
+                </span>
+                <span className="flex-shrink-0" style={{ color: "var(--text-muted)" }}>
+                  {row.count}×
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

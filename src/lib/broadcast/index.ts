@@ -1,5 +1,5 @@
 import "server-only";
-import { BroadcastPlatform, BroadcastResult } from "../broadcast-types";
+import { BroadcastMedia, BroadcastPlatform, BroadcastResult } from "../broadcast-types";
 import { sendTelegram } from "./telegram";
 import { sendWhatsapp } from "./whatsapp";
 
@@ -10,6 +10,10 @@ export function broadcastStatus() {
   };
 }
 
-export async function broadcast(text: string, platforms: BroadcastPlatform[]): Promise<BroadcastResult[]> {
-  return Promise.all(platforms.map((p) => (p === "telegram" ? sendTelegram(text) : sendWhatsapp(text))));
+export async function broadcast(
+  text: string,
+  platforms: BroadcastPlatform[],
+  media?: BroadcastMedia
+): Promise<BroadcastResult[]> {
+  return Promise.all(platforms.map((p) => (p === "telegram" ? sendTelegram(text, media) : sendWhatsapp(text, media))));
 }

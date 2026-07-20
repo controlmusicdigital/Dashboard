@@ -1,7 +1,25 @@
 import "server-only";
-import { BroadcastResult } from "../broadcast-types";
+import { BroadcastMedia, BroadcastResult } from "../broadcast-types";
+import { dataUrlToBlob } from "./media";
 
-export async function sendWhatsapp(text: string): Promise<BroadcastResult> {
+async function uploadMedia(phoneNumberId: string, token: string, media: BroadcastMedia): Promise<string> {
+  const blob = dataUrlToBlob(media.dataUrl, media.mimeType);
+  const form = new FormData();
+  form.append("file", blob, `broadcast.${media.mimeType.split("/")[1] || "bin"}`);
+  form.append("type", media.mimeType);
+  form.append("messaging_product", "whatsapp");
+
+  const res = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/media`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok || !data.id) throw new Error(data?.error?.message || `HTTP ${res.status} subiendo el archivo`);
+  return data.id as string;
+}
+
+export async function sendWhatsapp(text: string, media?: BroadcastMedia): Promise<BroadcastResult> {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const to = process.env.WHATSAPP_TO;
@@ -16,10 +34,22 @@ export async function sendWhatsapp(text: string): Promise<BroadcastResult> {
   }
 
   try {
+    const body = media
+      ? (() => {
+          return uploadMedia(phoneNumberId, token, media).then((mediaId) => ({
+            messaging_product: "whatsapp",
+            to,
+            type: media.kind,
+            [media.kind]: { id: mediaId, caption: text || undefined },
+          }));
+        })()
+      : Promise.resolve({ messaging_product: "whatsapp", to, type: "text", text: { body: text } });
+
+    const payload = await body;
     const res = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ messaging_product: "whatsapp", to, type: "text", text: { body: text } }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);

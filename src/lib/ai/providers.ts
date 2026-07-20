@@ -2,7 +2,7 @@ import "server-only";
 import { buildPrompt, parseGenerationJSON, ParsedGeneration } from "./prompt";
 import { Artist } from "../types";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 
 export async function requestGeminiText(promptText: string): Promise<string> {

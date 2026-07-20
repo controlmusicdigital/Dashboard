@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { BroadcastPlatform, BroadcastResult } from "@/lib/broadcast-types";
+import { useEffect, useRef, useState } from "react";
+import { BroadcastMedia, BroadcastPlatform, BroadcastResult } from "@/lib/broadcast-types";
+import { AIProvider } from "@/lib/studio-types";
 import { logActivity } from "@/lib/team";
+import { getSuggested, recordChoice } from "@/lib/memory";
+
+const MEMORY_SCOPE = "broadcast";
 
 const PLATFORMS: { id: BroadcastPlatform; label: string; color: string }[] = [
   { id: "telegram", label: "Telegram", color: "#26A5E4" },
@@ -37,11 +41,29 @@ export function BroadcastPanel() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<{ id: string; time: string; message: string; results: BroadcastResult[] }[]>([]);
 
+  const [topic, setTopic] = useState("");
+  const [provider, setProvider] = useState<AIProvider>("gemini");
+  const [generating, setGenerating] = useState(false);
+  const [genNote, setGenNote] = useState<string | null>(null);
+
+  const [media, setMedia] = useState<BroadcastMedia | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetch("/api/broadcast-status")
       .then((r) => r.json())
       .then(setStatus)
       .catch(() => setStatus({ telegram: false, whatsapp: false }));
+
+    const suggestedProvider = getSuggested(MEMORY_SCOPE, "provider");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
+    if (suggestedProvider === "gemini" || suggestedProvider === "chatgpt") setProvider(suggestedProvider);
+
+    const suggestedPlatforms = getSuggested(MEMORY_SCOPE, "platforms");
+    if (suggestedPlatforms) {
+      const ids = suggestedPlatforms.split(",").filter((p): p is BroadcastPlatform => p === "telegram" || p === "whatsapp");
+      if (ids.length > 0) setSelected(new Set(ids));
+    }
   }, []);
 
   function togglePlatform(id: BroadcastPlatform) {
@@ -53,9 +75,44 @@ export function BroadcastPanel() {
     });
   }
 
+  async function handleGenerate() {
+    if (!topic.trim()) {
+      setError("Escribe un tema para generar el mensaje.");
+      return;
+    }
+    setError(null);
+    setGenerating(true);
+    setGenNote(null);
+    try {
+      const res = await fetch("/api/generate-broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, topic: topic.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "No se pudo generar el mensaje");
+      setMessage(data.message);
+      if (data.note) setGenNote(data.note);
+      recordChoice(MEMORY_SCOPE, "provider", provider);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo generar el mensaje");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const kind = file.type.startsWith("video") ? "video" : "image";
+    const reader = new FileReader();
+    reader.onload = () => setMedia({ dataUrl: reader.result as string, mimeType: file.type, kind });
+    reader.readAsDataURL(file);
+  }
+
   async function handleSend() {
-    if (!message.trim()) {
-      setError("Escribe un mensaje para difundir.");
+    if (!message.trim() && !media) {
+      setError("Escribe un mensaje o adjunta una imagen/video para difundir.");
       return;
     }
     if (selected.size === 0) {
@@ -65,16 +122,22 @@ export function BroadcastPanel() {
     setError(null);
     setSending(true);
     try {
+      const platforms = Array.from(selected);
       const res = await fetch("/api/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message.trim(), platforms: Array.from(selected) }),
+        body: JSON.stringify({ message: message.trim(), platforms, media }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "No se pudo enviar la difusion");
       const results = data.results as BroadcastResult[];
       setHistory((prev) => [
-        { id: `${Date.now()}`, time: new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }), message: message.trim(), results },
+        {
+          id: `${Date.now()}`,
+          time: new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }),
+          message: message.trim() || (media ? `[${media.kind === "image" ? "Imagen" : "Video"} sin texto]` : ""),
+          results,
+        },
         ...prev,
       ]);
       logActivity(
@@ -83,7 +146,10 @@ export function BroadcastPanel() {
         "Difusion",
         message.trim().slice(0, 60)
       );
+      recordChoice(MEMORY_SCOPE, "platforms", platforms.slice().sort().join(","));
       setMessage("");
+      setMedia(null);
+      if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo enviar la difusion");
     } finally {
@@ -98,10 +164,54 @@ export function BroadcastPanel() {
           Difusion
         </h2>
         <p className="mt-1 max-w-2xl text-xs" style={{ color: "var(--text-muted)" }}>
-          Manda un mensaje por Telegram, WhatsApp, o los dos a la vez — a tu canal/grupo de Telegram y a tu numero
-          de WhatsApp Business. Cada uno se envia de verdad en cuanto configures sus credenciales en{" "}
-          <code>.env.local</code>; sin configurar, se simula y queda marcado como tal.
+          Manda un mensaje — con foto o video si quieres — por Telegram, WhatsApp, o los dos a la vez. Cada uno se
+          envia de verdad en cuanto configures sus credenciales en <code>.env.local</code>; sin configurar, se simula
+          y queda marcado como tal.
         </p>
+      </div>
+
+      <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+            Generar con IA
+          </h3>
+          <div className="flex gap-1 rounded-full p-1" style={{ backgroundColor: "var(--surface-2)" }}>
+            {(["gemini", "chatgpt"] as AIProvider[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setProvider(p)}
+                className="rounded-full px-3 py-1 text-xs font-semibold"
+                style={
+                  provider === p
+                    ? { backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }
+                    : { color: "var(--text-muted)" }
+                }
+              >
+                {p === "gemini" ? "Gemini" : "ChatGPT"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <input
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="Ej. adelanto del proximo sencillo de Pacheman"
+          className="mt-3 w-full rounded-xl px-3 py-2 text-sm outline-none"
+          style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
+        />
+        <button
+          onClick={handleGenerate}
+          disabled={generating || !topic.trim()}
+          className="mt-2 w-full rounded-xl py-2.5 text-sm font-semibold disabled:opacity-50"
+          style={{ backgroundColor: "var(--seq-500)", color: "#fff" }}
+        >
+          {generating ? "Generando..." : `Generar con ${provider === "gemini" ? "Gemini" : "ChatGPT"}`}
+        </button>
+        {genNote && (
+          <p className="mt-2 text-xs" style={{ color: "var(--status-warning)" }}>
+            {genNote}
+          </p>
+        )}
       </div>
 
       <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
@@ -116,6 +226,38 @@ export function BroadcastPanel() {
           className="mt-1 w-full resize-none rounded-xl px-3 py-2 text-sm outline-none"
           style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
         />
+
+        <div className="mt-3">
+          {media ? (
+            <div className="relative w-fit">
+              {media.kind === "image" ? (
+                // eslint-disable-next-line @next/next/no-img-element -- local preview of a user-picked file, not an optimizable remote asset
+                <img src={media.dataUrl} alt="" className="h-32 w-32 rounded-xl object-cover" />
+              ) : (
+                <video src={media.dataUrl} className="h-32 w-32 rounded-xl object-cover" muted controls />
+              )}
+              <button
+                onClick={() => {
+                  setMedia(null);
+                  if (fileRef.current) fileRef.current.value = "";
+                }}
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                style={{ backgroundColor: "var(--status-critical)", color: "#fff" }}
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <label
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium"
+              style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
+            >
+              📷 Adjuntar foto o video
+              <input ref={fileRef} type="file" accept="image/*,video/*" onChange={handleFile} className="hidden" />
+            </label>
+          )}
+        </div>
+
         <div className="mt-3 flex flex-wrap gap-2">
           {PLATFORMS.map((p) => {
             const on = selected.has(p.id);
@@ -153,7 +295,7 @@ export function BroadcastPanel() {
         )}
         <button
           onClick={handleSend}
-          disabled={sending || !message.trim() || selected.size === 0}
+          disabled={sending || (!message.trim() && !media) || selected.size === 0}
           className="mt-4 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
           style={{ backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }}
         >

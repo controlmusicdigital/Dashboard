@@ -160,11 +160,28 @@ dos a la vez con un solo boton.
 
 Cada boton de plataforma muestra "Real" o "Demo" segun si esa integracion esta configurada. Sin
 llaves, el envio se simula (queda marcado como tal, nunca se disfraza de envio real). Con las
-llaves puestas, el mensaje sale de verdad — Telegram vía su Bot API (`sendMessage`) y WhatsApp vía
-la Cloud API de Meta. Nota sobre WhatsApp: la Cloud API solo entrega texto libre a un numero que te
-haya escrito en las ultimas 24 horas; fuera de esa ventana hace falta una plantilla (template)
-pre-aprobada por Meta — eso no esta implementado todavia. Los envios ocurren en
-`src/lib/broadcast/` (servidor); las llaves nunca llegan al navegador.
+llaves puestas, el mensaje sale de verdad — Telegram vía su Bot API (`sendMessage` / `sendPhoto` /
+`sendVideo`) y WhatsApp vía la Cloud API de Meta. Nota sobre WhatsApp: la Cloud API solo entrega
+mensajes a un numero que te haya escrito en las ultimas 24 horas; fuera de esa ventana hace falta
+una plantilla (template) pre-aprobada por Meta — eso no esta implementado todavia. Los envios
+ocurren en `src/lib/broadcast/` (servidor); las llaves nunca llegan al navegador.
+
+- **Generar con IA**: escribe un tema y Gemini o ChatGPT redactan el mensaje (reutiliza
+  `src/lib/ai/providers.ts`, el mismo backend que el Estudio de contenido y las Campanas). Sin
+  llave configurada para ese proveedor, cae en contenido de ejemplo con una nota clara.
+- **Foto o video**: adjunta una imagen o video al mensaje. Telegram lo manda como
+  `sendPhoto`/`sendVideo`; WhatsApp primero lo sube a su endpoint de medios (`/media`) para
+  conseguir un `media_id` y despues lo referencia en el mensaje — ninguno de los dos necesita que
+  nosotros hospedemos el archivo en algun servidor propio.
+
+## Memoria (el panel aprende tus preferencias)
+
+Cada vez que generas contenido con IA (Estudio, Campanas, Difusion) o mandas una difusion, el panel
+recuerda que proveedor y que plataformas usaste — y las deja preseleccionadas la proxima vez que
+abres esa seccion. Es conteo simple guardado en este navegador (`src/lib/memory.ts`, localStorage),
+no un modelo entrenado ni nada que se comparta entre dispositivos. La pestana "Mi equipo" tiene una
+seccion "Lo que ha aprendido el panel" que muestra esos patrones de forma transparente, con un
+boton "Olvidar todo" para resetear cuando quieras.
 
 ## Proximos pasos para datos en vivo
 

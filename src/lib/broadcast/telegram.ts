@@ -1,7 +1,8 @@
 import "server-only";
-import { BroadcastResult } from "../broadcast-types";
+import { BroadcastMedia, BroadcastResult } from "../broadcast-types";
+import { dataUrlToBlob } from "./media";
 
-export async function sendTelegram(text: string): Promise<BroadcastResult> {
+export async function sendTelegram(text: string, media?: BroadcastMedia): Promise<BroadcastResult> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -15,11 +16,24 @@ export async function sendTelegram(text: string): Promise<BroadcastResult> {
   }
 
   try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text }),
-    });
+    let res: Response;
+    if (media) {
+      const blob = dataUrlToBlob(media.dataUrl, media.mimeType);
+      const form = new FormData();
+      form.append("chat_id", chatId);
+      if (text) form.append("caption", text);
+      form.append(media.kind === "image" ? "photo" : "video", blob, `broadcast.${media.mimeType.split("/")[1] || "bin"}`);
+      res = await fetch(`https://api.telegram.org/bot${token}/${media.kind === "image" ? "sendPhoto" : "sendVideo"}`, {
+        method: "POST",
+        body: form,
+      });
+    } else {
+      res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text }),
+      });
+    }
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data?.description || `HTTP ${res.status}`);
     return { platform: "telegram", ok: true, simulated: false, detail: "Enviado a Telegram." };

@@ -5,6 +5,7 @@ import { Artist } from "@/lib/types";
 import { AIProvider, GeneratedContent, PublishState, SocialPlatformId } from "@/lib/studio-types";
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { logActivity } from "@/lib/team";
+import { getSuggested, recordChoice } from "@/lib/memory";
 
 const STUDIO_PLATFORMS: SocialPlatformId[] = ["instagram", "tiktok", "facebook", "youtube", "x"];
 
@@ -70,7 +71,11 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       .then((r) => r.json())
       .then(setAiStatus)
       .catch(() => setAiStatus({ gemini: false, chatgpt: false }));
-  }, []);
+
+    const suggested = getSuggested(`studio:${artist.id}`, "provider");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read, unavailable during SSR
+    if (suggested === "gemini" || suggested === "chatgpt") setProvider(suggested);
+  }, [artist.id]);
 
   useEffect(() => {
     return () => {
@@ -121,6 +126,7 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       setHashtags(content.hashtags.join(" "));
       setVariants(content.variants);
       setActiveVariant("instagram");
+      recordChoice(`studio:${artist.id}`, "provider", provider);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo generar el contenido");
     } finally {

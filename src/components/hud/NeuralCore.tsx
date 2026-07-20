@@ -124,7 +124,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
         }}
         aria-label="Abrir CMD-Neural AI"
       >
-        <span className="font-hud-mono text-[9px] font-bold tracking-wider text-white">AI</span>
+        <span className="font-hud-mono text-[11px] font-bold tracking-wider text-white">AI</span>
       </button>
 
       {open && (
@@ -141,7 +141,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
               />
               <div>
                 <div className="text-sm font-semibold">CMD-Neural AI</div>
-                <div className="font-hud-mono text-[10px]" style={{ color: STATE_COLOR[state] }}>
+                <div className="font-hud-mono text-[12px]" style={{ color: STATE_COLOR[state] }}>
                   {STATE_LABEL[state]} {nano.supported ? "· on-device" : "· cloud"}
                 </div>
               </div>
@@ -164,7 +164,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
                     <button
                       key={q}
                       onClick={() => send(q)}
-                      className="rounded-full border px-3 py-1.5 text-left text-[11px]"
+                      className="rounded-full border px-3 py-1.5 text-left text-[13px]"
                       style={{ borderColor: "var(--border-hairline)", backgroundColor: "var(--surface-2)", color: "var(--text-secondary)" }}
                     >
                       {q}
@@ -177,7 +177,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
               {turns.map((t, i) => (
                 <div key={i} className={`flex ${t.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed"
+                    className="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed"
                     style={
                       t.role === "user"
                         ? { background: "linear-gradient(135deg, var(--accent-cyan), var(--accent-blue-dr))", color: "#04121a" }
@@ -190,7 +190,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
               ))}
             </div>
             {source && turns.length > 0 && (
-              <p className="font-hud-mono mt-2 text-[10px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+              <p className="font-hud-mono mt-2 text-[12px] uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
                 {source === "nano" ? "Gemini Nano · on-device" : source === "gemini" ? "Google Gemini · cloud" : "Datos de ejemplo"}
               </p>
             )}
@@ -204,7 +204,7 @@ export function NeuralCore({ metricsContext }: { metricsContext: string }) {
                 if (e.key === "Enter") send(input);
               }}
               placeholder="Consulta al nucleo neural..."
-              className="flex-1 rounded-xl border px-3 py-2 text-[13px] outline-none"
+              className="flex-1 rounded-xl border px-3 py-2 text-[15px] outline-none"
               style={{ borderColor: "var(--border-hairline)", backgroundColor: "var(--surface-2)", color: "var(--text-primary)" }}
             />
             <button

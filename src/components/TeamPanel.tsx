@@ -195,7 +195,7 @@ export function TeamPanel() {
                 <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>{m.email}</span>
                 <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{ROLE_LABEL[m.role]}</span>
                 <span
-                  className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                  className="rounded-full px-2 py-0.5 text-[13px] font-semibold"
                   style={
                     m.status === "activo"
                       ? { color: "var(--status-good)", border: "1px solid var(--status-good)" }

@@ -127,7 +127,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
               <img src={youtubeThumbnail(v.thumbSeed)} alt="" className="aspect-video w-full rounded-t-2xl object-cover" />
               {v.durationSec > 0 && (
                 <span
-                  className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[11px] font-semibold text-white"
+                  className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[13px] font-semibold text-white"
                   style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
                 >
                   {formatDuration(v.durationSec)}
@@ -140,7 +140,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
                   {v.title}
                 </h4>
                 <span
-                  className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  className="flex-shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold"
                   style={
                     v.status === "publico"
                       ? { color: "var(--status-good)", border: "1px solid var(--status-good)" }

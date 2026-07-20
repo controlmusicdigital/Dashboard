@@ -92,7 +92,7 @@ export function FuturisticKpiCard({
         </span>
         {deltaPct !== 0 && (
           <span
-            className="font-hud-mono inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium"
+            className="font-hud-mono inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[13px] font-medium"
             style={{
               color: good ? "var(--status-good)" : "var(--status-critical)",
               backgroundColor: good ? "color-mix(in srgb, var(--status-good) 14%, transparent)" : "color-mix(in srgb, var(--status-critical) 14%, transparent)",

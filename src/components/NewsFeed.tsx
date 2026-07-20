@@ -230,7 +230,7 @@ function ShareMenu({ item }: { item: NewsItem }) {
         </div>
       )}
       {copiedNote && (
-        <p className="absolute right-0 mt-1 w-48 text-right text-[11px]" style={{ color: "var(--status-good)" }}>
+        <p className="absolute right-0 mt-1 w-48 text-right text-[13px]" style={{ color: "var(--status-good)" }}>
           {copiedNote}
         </p>
       )}

@@ -60,7 +60,7 @@ export function AIInsights() {
       <div className="relative flex flex-col gap-8">
         <div className="flex flex-col items-center gap-2 pt-6 text-center">
           <span
-            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium"
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-medium"
             style={{ borderColor: "var(--accent-cyan)", color: "var(--accent-cyan)", backgroundColor: "color-mix(in srgb, var(--accent-cyan) 10%, transparent)" }}
           >
             <Sparkles size={12} /> CMD-Neural AI &middot; telemetria en tiempo real
@@ -86,7 +86,7 @@ export function AIInsights() {
               className="rounded-2xl p-4"
               style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)" }}
             >
-              <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+              <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                 {kpi.label}
               </div>
               <div className="font-hud-mono mt-1 text-xl font-bold" style={{ color: "var(--text-primary)" }}>
@@ -108,7 +108,7 @@ export function AIInsights() {
                   <button
                     key={p}
                     onClick={() => setChartPlatform(p)}
-                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium transition-colors"
                     style={
                       chartPlatform === p
                         ? { background: "linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta))", color: "#04121a" }
@@ -156,10 +156,10 @@ export function AIInsights() {
             <h3 className="mb-1 flex items-center gap-1.5 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
               <TrendingUp size={14} /> Calculadora de ROI
             </h3>
-            <p className="mb-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-3 text-[13px]" style={{ color: "var(--text-muted)" }}>
               Estimado a partir de los ratios actuales del sello &mdash; no es una prediccion garantizada.
             </p>
-            <label className="mb-1 block text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <label className="mb-1 block text-[13px]" style={{ color: "var(--text-muted)" }}>
               Gasto hipotetico en Ads (USD)
             </label>
             <input
@@ -177,7 +177,7 @@ export function AIInsights() {
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                   Ingresos estimados
                 </div>
                 <div className="font-hud-mono text-base font-semibold" style={{ color: "var(--accent-cyan)" }}>
@@ -185,7 +185,7 @@ export function AIInsights() {
                 </div>
               </div>
               <div>
-                <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                   Streams estimados
                 </div>
                 <div className="font-hud-mono text-base font-semibold" style={{ color: "var(--accent-magenta)" }}>
@@ -222,7 +222,7 @@ export function AIInsights() {
                         <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                           {d.artist.name}
                         </div>
-                        <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                        <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                           {d.artist.genre}
                         </div>
                       </div>
@@ -238,7 +238,7 @@ export function AIInsights() {
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                      <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                         Oyentes Spotify
                       </div>
                       <div className="font-hud-mono text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -246,7 +246,7 @@ export function AIInsights() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                      <div className="text-[13px]" style={{ color: "var(--text-muted)" }}>
                         Suscriptores YouTube
                       </div>
                       <div className="font-hud-mono text-sm font-semibold" style={{ color: "var(--text-primary)" }}>

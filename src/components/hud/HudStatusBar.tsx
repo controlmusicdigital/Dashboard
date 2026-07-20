@@ -42,7 +42,7 @@ export function HudStatusBar() {
   const time = useClock();
 
   return (
-    <div className="font-hud-mono flex flex-wrap items-center gap-3 text-[11px]" style={{ color: "var(--text-muted)" }}>
+    <div className="font-hud-mono flex flex-wrap items-center gap-3 text-[13px]" style={{ color: "var(--text-muted)" }}>
       <span className="flex items-center gap-1.5">
         <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--status-good)", boxShadow: "0 0 6px var(--status-good)" }} />
         PING: 18ms · SDQ-EDGE

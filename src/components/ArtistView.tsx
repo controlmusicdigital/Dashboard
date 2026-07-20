@@ -5,12 +5,11 @@ import { ArtistData } from "@/lib/types";
 import { PLATFORM_ORDER } from "@/lib/platforms";
 import { PlatformCard } from "./PlatformCard";
 import { ArtistStudio } from "./ArtistStudio";
-import { ArtistChat } from "./ArtistChat";
 import { ArtistCampaigns } from "./ArtistCampaigns";
 import { ConnectionsPanel } from "./ConnectionsPanel";
 import { YouTubeStudio } from "./YouTubeStudio";
 
-type SubView = "metrics" | "studio" | "youtube" | "campaigns" | "connections" | "chat";
+type SubView = "metrics" | "studio" | "youtube" | "campaigns" | "connections";
 
 export function ArtistView({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -52,9 +51,6 @@ export function ArtistView({ data }: { data: ArtistData }) {
           <SubTabButton active={subView === "connections"} onClick={() => setSubView("connections")}>
             Conexiones
           </SubTabButton>
-          <SubTabButton active={subView === "chat"} onClick={() => setSubView("chat")}>
-            Chat con {artist.name}
-          </SubTabButton>
         </div>
       </div>
 
@@ -74,7 +70,6 @@ export function ArtistView({ data }: { data: ArtistData }) {
       {subView === "youtube" && <YouTubeStudio data={data} />}
       {subView === "campaigns" && <ArtistCampaigns artist={artist} />}
       {subView === "connections" && <ConnectionsPanel entity={artist} />}
-      {subView === "chat" && <ArtistChat artist={artist} />}
     </div>
   );
 }

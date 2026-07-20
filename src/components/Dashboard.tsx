@@ -12,7 +12,6 @@ import { TeamPanel } from "./TeamPanel";
 import { BroadcastPanel } from "./BroadcastPanel";
 import { CommentsInbox } from "./CommentsInbox";
 import { FileShare } from "./FileShare";
-import { AIInsights } from "./insights/AIInsights";
 import { GridBackground } from "./hud/GridBackground";
 import { HudStatusBar } from "./hud/HudStatusBar";
 import { NeuralCore } from "./hud/NeuralCore";
@@ -20,7 +19,7 @@ import { NeuralStateProvider } from "@/lib/neural-state";
 import { buildLabelMetricsContext } from "@/lib/label-metrics";
 import type { ClientSession } from "./AuthGate";
 
-type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | "insights" | string;
+type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | string;
 
 export function Dashboard({ session, onLogout }: { session?: ClientSession | null; onLogout?: () => void }) {
   const [view, setView] = useState<View>("overview");
@@ -134,9 +133,6 @@ export function Dashboard({ session, onLogout }: { session?: ClientSession | nul
         <TabButton active={view === "files"} onClick={() => setView("files")}>
           Archivos
         </TabButton>
-        <TabButton active={view === "insights"} onClick={() => setView("insights")}>
-          AI Insights
-        </TabButton>
         {dataList.map((d) => (
           <TabButton key={d.artist.id} active={view === d.artist.id} onClick={() => setView(d.artist.id)}>
             {d.artist.name}
@@ -159,8 +155,6 @@ export function Dashboard({ session, onLogout }: { session?: ClientSession | nul
           <CommentsInbox />
         ) : view === "files" ? (
           <FileShare />
-        ) : view === "insights" ? (
-          <AIInsights />
         ) : (
           <ArtistView data={allData[view]} />
         )}

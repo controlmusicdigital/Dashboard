@@ -124,27 +124,6 @@ proceso persistente (como ahora), pero **no sobrevive un redeploy en un hosting 
 Vercel) sin agregar un servicio de almacenamiento real (S3, Vercel Blob, etc.), que seria el
 siguiente paso para que los archivos queden disponibles de forma permanente.
 
-## Chatbot por artista (Claude Opus 4.8, respaldo ChatGPT)
-
-Cada artista tiene una pestana "Chat con &lt;artista&gt;" — un chatbot que responde en el
-personaje del artista (nombre, genero, bio), pensado para el equipo o para probar la voz del
-artista antes de usarla en redes. Prueba los proveedores en este orden: Claude
-(`claude-opus-4-8`, streaming) si hay `ANTHROPIC_API_KEY`; si no, ChatGPT (`OPENAI_API_KEY`,
-tambien con streaming); si ninguna esta configurada, respuestas de ejemplo. La cabecera del chat
-muestra cual de los dos esta respondiendo.
-
-1. Copia `.env.local.example` a `.env.local` si no lo has hecho.
-2. Pon tu llave en `ANTHROPIC_API_KEY` y/o `OPENAI_API_KEY` (nunca en el chat ni en el repo).
-3. Reinicia `npm run dev`.
-
-Sin ninguna llave, el chat sigue funcionando con respuestas de ejemplo (se avisa con el estado
-"Modo demostracion" en la cabecera del chat). Las llamadas ocurren solo en
-`src/app/api/chat/route.ts` (servidor); las llaves nunca llegan al navegador.
-
-El chat tambien soporta voz en el navegador (sin API extra): microfono para dictar el mensaje
-y boton de bocina para escuchar cada respuesta, usando el Web Speech API nativo del navegador
-(Chromium). Si el navegador no lo soporta, esos botones simplemente no aparecen.
-
 ## Campanas publicitarias (Google Ads, Instagram, TikTok, Facebook, YouTube, X)
 
 Pestana "Campanas" por artista: arma una campana (objetivo, plataformas, presupuesto, fechas,
@@ -262,7 +241,7 @@ Los KPIs principales (`FuturisticKpiCard.tsx`) tienen inclinacion 3D con el mous
 sparkline con brillo generado a partir de la serie de los ultimos 30 dias.
 
 El nucleo flotante **CMD-Neural AI** (`src/components/hud/NeuralCore.tsx`) esta disponible en cualquier
-pestana (no solo en AI Insights) y responde en tres capas, en orden:
+pestana y responde en tres capas, en orden:
 
 1. **En el dispositivo**: si el navegador expone la Prompt API de Chrome para Gemini Nano (`window.LanguageModel`
    o `window.ai.languageModel` — API experimental, solo en Chrome Canary/Dev con el flag "Prompt API for Gemini
@@ -273,8 +252,8 @@ pestana (no solo en AI Insights) y responde en tres capas, en orden:
 3. **Datos de ejemplo**: si tampoco hay llave, o estamos en la demo estatica de GitHub Pages (sin servidor).
 
 El nucleo lee la fuente real de cada respuesta (header `X-Copilot-Source`) para nunca mostrar una respuesta de
-ejemplo como si fuera de Gemini. Cada tarjeta de artista en AI Insights tiene un boton de "auditoria rapida"
-que le manda un prompt pre-armado al nucleo desde cualquier parte de la pagina (`src/lib/neural-state.tsx`).
+ejemplo como si fuera de Gemini. Cualquier componente puede mandarle un prompt pre-armado desde cualquier
+parte de la pagina (`src/lib/neural-state.tsx`).
 
 ## Cuentas de acceso (login por artista)
 
@@ -286,8 +265,8 @@ para todo el mundo:
   los tres artistas, El sello), igual que hoy.
 - `ARTIST_PASSWORD_PACHEMAN`, `ARTIST_PASSWORD_MAX_AVENTURA`, `ARTIST_PASSWORD_EL_REAL_SOPRANO` —
   una contrasena por artista. Un artista que inicia sesion **solo ve su propia pagina** (Metricas,
-  Estudio, YouTube Studio, Campanas, Conexiones, Chat) — nada de los otros artistas, ni El sello, ni
-  el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos, AI Insights).
+  Estudio, YouTube Studio, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
+  el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos).
 
 La sesion es una cookie firmada (HMAC, `src/lib/auth.ts`) — no hay base de datos de usuarios, solo
 contrasenas por variable de entorno. Pon algo aleatorio en `AUTH_SECRET` (ej. `openssl rand -hex 32`)
@@ -295,7 +274,7 @@ antes de usar esto en produccion; sin esa variable usa un secreto de desarrollo 
 para probar localmente.
 
 La restriccion no es solo cosmetica: las rutas del servidor que ya existian para
-Chat/Estudio/Campanas/Importar-enlace (`requireArtistAccess()` en cada una) verifican que la sesion
+Estudio/Campanas/Importar-enlace (`requireArtistAccess()` en cada una) verifican que la sesion
 activa sea admin o sea exactamente ese artista antes de responder — un artista logueado no puede
 pedirle a la API que le muestre o genere contenido de otro artista aunque edite la peticion a mano.
 

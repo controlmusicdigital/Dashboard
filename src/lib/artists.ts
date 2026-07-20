@@ -35,7 +35,7 @@ export const artists: Artist[] = [
 ];
 
 export function getArtist(id: string): Artist | undefined {
-  // ArtistView/ArtistStudio/ArtistCampaigns/ArtistChat are reused for "El sello" too, so
+  // ArtistView/ArtistStudio/ArtistCampaigns are reused for "El sello" too, so
   // requests from that view carry the label's id, not one of the three real artists.
   if (id === label.id) return label;
   return artists.find((a) => a.id === id);

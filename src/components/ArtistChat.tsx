@@ -12,8 +12,11 @@ interface ChatMessage {
   content: string;
 }
 
+type ChatProvider = "claude" | "chatgpt" | null;
+
 export function ArtistChat({ artist }: { artist: Artist }) {
-  const [connected, setConnected] = useState<boolean | null>(null);
+  const [provider, setProvider] = useState<ChatProvider>(null);
+  const [checked, setChecked] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -33,13 +36,16 @@ export function ArtistChat({ artist }: { artist: Artist }) {
   useEffect(() => {
     if (STATIC_DEMO) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- static export has no API routes, so the status is known at build time
-      setConnected(false);
+      setChecked(true);
       return;
     }
     fetch("/api/chat/status")
       .then((r) => r.json())
-      .then((d) => setConnected(Boolean(d.claude)))
-      .catch(() => setConnected(false));
+      .then((d) => {
+        setProvider(d.claude ? "claude" : d.chatgpt ? "chatgpt" : null);
+        setChecked(true);
+      })
+      .catch(() => setChecked(true));
   }, []);
 
   useEffect(() => {
@@ -118,7 +124,7 @@ export function ArtistChat({ artist }: { artist: Artist }) {
               Chat con {artist.name}
             </div>
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-              Impulsado por Claude Opus 4.8
+              {provider === "chatgpt" ? "Impulsado por ChatGPT" : "Impulsado por Claude Opus 4.8"}
             </div>
           </div>
         </div>
@@ -143,12 +149,12 @@ export function ArtistChat({ artist }: { artist: Artist }) {
           <span
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
             style={{
-              color: connected ? "var(--status-good)" : "var(--text-muted)",
-              border: `1px solid ${connected ? "var(--status-good)" : "var(--border-hairline)"}`,
+              color: provider ? "var(--status-good)" : "var(--text-muted)",
+              border: `1px solid ${provider ? "var(--status-good)" : "var(--border-hairline)"}`,
             }}
           >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: connected ? "var(--status-good)" : "var(--text-muted)" }} />
-            {connected === null ? "Verificando..." : connected ? "Conectado" : "Modo demostracion"}
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: provider ? "var(--status-good)" : "var(--text-muted)" }} />
+            {!checked ? "Verificando..." : provider ? "Conectado" : "Modo demostracion"}
           </span>
         </div>
       </div>
@@ -157,11 +163,11 @@ export function ArtistChat({ artist }: { artist: Artist }) {
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-center" style={{ color: "var(--text-muted)" }}>
             <p className="text-sm">Escribele a {artist.name} como si fueras un fan o el equipo del sello.</p>
-            {connected === false && (
+            {checked && !provider && (
               <p className="max-w-xs text-xs">
                 {STATIC_DEMO
                   ? "Demo estatica (GitHub Pages) — el chat en vivo necesita la app completa con servidor."
-                  : "Sin ANTHROPIC_API_KEY configurada todavia — las respuestas son de ejemplo."}
+                  : "Sin ANTHROPIC_API_KEY ni OPENAI_API_KEY configuradas todavia — las respuestas son de ejemplo."}
               </p>
             )}
           </div>

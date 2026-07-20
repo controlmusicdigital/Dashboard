@@ -3,6 +3,7 @@ import { generateAdContent } from "@/lib/ai/ads";
 import { getArtist } from "@/lib/artists";
 import { AIProvider } from "@/lib/studio-types";
 import { CampaignObjective } from "@/lib/campaign-types";
+import { requireArtistAccess } from "@/lib/auth";
 
 const OBJECTIVES: CampaignObjective[] = ["reconocimiento", "trafico", "conversiones", "streams"];
 
@@ -21,6 +22,8 @@ export async function POST(req: NextRequest) {
   if (!artist) {
     return NextResponse.json({ error: "Artista invalido" }, { status: 400 });
   }
+  const denied = requireArtistAccess(req, artist.id);
+  if (denied) return denied;
   if (!objective || !OBJECTIVES.includes(objective)) {
     return NextResponse.json({ error: "Objetivo invalido" }, { status: 400 });
   }

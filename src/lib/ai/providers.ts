@@ -58,6 +58,56 @@ export async function requestChatGPTText(promptText: string): Promise<string> {
   return text;
 }
 
+interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export async function* streamChatGPTText(systemPrompt: string, messages: ChatTurn[]): AsyncGenerator<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY no esta configurada");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      stream: true,
+      temperature: 0.9,
+    }),
+  });
+
+  if (!res.ok || !res.body) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`ChatGPT respondio ${res.status}: ${body.slice(0, 300)}`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") return;
+      if (!jsonStr) continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const delta = parsed?.choices?.[0]?.delta?.content;
+        if (typeof delta === "string") yield delta;
+      } catch {
+        // partial SSE line, wait for more data
+      }
+    }
+  }
+}
+
 export async function callGemini(artist: Artist, userPrompt: string): Promise<ParsedGeneration> {
   const text = await requestGeminiText(buildPrompt(artist, userPrompt));
   return parseGenerationJSON(text);

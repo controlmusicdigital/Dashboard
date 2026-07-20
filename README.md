@@ -93,8 +93,17 @@ Usa `ANTHROPIC_API_KEY`; sin ella, muestra contenido de ejemplo. Sirve en `src/l
 
 Pestana "YouTube Studio" por artista: una mini version del YouTube Studio real — lista de videos
 con miniatura, vistas/likes/comentarios, estado (Publico/No listado/Borrador) y fecha, mas un
-formulario para "subir" un video nuevo (titulo + archivo). La subida es **simulada** — igual que
-el resto del estudio, publicar de verdad requiere conectar la cuenta de YouTube por OAuth.
+formulario para "subir" un video nuevo (titulo + archivo). La subida sigue siendo **simulada**.
+
+La seccion "Conectar tu cuenta de YouTube" **si es real**: cada artista inicia sesion con su propia
+cuenta de Google (OAuth 2.0) y ve las estadisticas organicas reales de su canal — vistas, minutos
+vistos y suscriptores ganados en los ultimos 28 dias, via YouTube Data API v3 + YouTube Analytics
+API (`src/lib/youtube-auth.ts`, `src/lib/youtube-api.ts`). Los tokens se guardan por artista en
+`.data/youtube-tokens/` (mismo disco/limitacion que Archivos — no sobrevive un redeploy serverless
+sin una base de datos real). Para activarlo hace falta crear un cliente OAuth en Google Cloud
+Console — instrucciones completas en `.env.local.example` junto a `GOOGLE_OAUTH_CLIENT_ID` /
+`GOOGLE_OAUTH_CLIENT_SECRET`. Sin esas llaves, la seccion muestra honestamente que todavia no esta
+configurada, en vez de un boton que no hace nada.
 
 ## Comentarios (bandeja unificada)
 
@@ -115,20 +124,22 @@ proceso persistente (como ahora), pero **no sobrevive un redeploy en un hosting 
 Vercel) sin agregar un servicio de almacenamiento real (S3, Vercel Blob, etc.), que seria el
 siguiente paso para que los archivos queden disponibles de forma permanente.
 
-## Chatbot por artista (Claude Opus 4.8)
+## Chatbot por artista (Claude Opus 4.8, respaldo ChatGPT)
 
 Cada artista tiene una pestana "Chat con &lt;artista&gt;" — un chatbot que responde en el
 personaje del artista (nombre, genero, bio), pensado para el equipo o para probar la voz del
-artista antes de usarla en redes. Corre sobre la API de Claude (modelo `claude-opus-4-8`) con
-streaming en tiempo real.
+artista antes de usarla en redes. Prueba los proveedores en este orden: Claude
+(`claude-opus-4-8`, streaming) si hay `ANTHROPIC_API_KEY`; si no, ChatGPT (`OPENAI_API_KEY`,
+tambien con streaming); si ninguna esta configurada, respuestas de ejemplo. La cabecera del chat
+muestra cual de los dos esta respondiendo.
 
 1. Copia `.env.local.example` a `.env.local` si no lo has hecho.
-2. Pon tu llave en `ANTHROPIC_API_KEY` (consola de Anthropic, nunca en el chat ni en el repo).
+2. Pon tu llave en `ANTHROPIC_API_KEY` y/o `OPENAI_API_KEY` (nunca en el chat ni en el repo).
 3. Reinicia `npm run dev`.
 
-Sin la llave, el chat sigue funcionando con respuestas de ejemplo (se avisa con el estado
-"Modo demostracion" en la cabecera del chat). La llamada a Claude ocurre solo en
-`src/app/api/chat/route.ts` (servidor); la llave nunca llega al navegador.
+Sin ninguna llave, el chat sigue funcionando con respuestas de ejemplo (se avisa con el estado
+"Modo demostracion" en la cabecera del chat). Las llamadas ocurren solo en
+`src/app/api/chat/route.ts` (servidor); las llaves nunca llegan al navegador.
 
 El chat tambien soporta voz en el navegador (sin API extra): microfono para dictar el mensaje
 y boton de bocina para escuchar cada respuesta, usando el Web Speech API nativo del navegador
@@ -264,6 +275,32 @@ pestana (no solo en AI Insights) y responde en tres capas, en orden:
 El nucleo lee la fuente real de cada respuesta (header `X-Copilot-Source`) para nunca mostrar una respuesta de
 ejemplo como si fuera de Gemini. Cada tarjeta de artista en AI Insights tiene un boton de "auditoria rapida"
 que le manda un prompt pre-armado al nucleo desde cualquier parte de la pagina (`src/lib/neural-state.tsx`).
+
+## Cuentas de acceso (login por artista)
+
+Por defecto el panel sigue tan abierto como siempre — cualquiera con el link ve todo. En cuanto
+configures **al menos una** contrasena en `.env.local`, se activa una pantalla de inicio de sesion
+para todo el mundo:
+
+- `ADMIN_PASSWORD` — una sola cuenta de administrador que ve el panel completo (todas las pestanas,
+  los tres artistas, El sello), igual que hoy.
+- `ARTIST_PASSWORD_PACHEMAN`, `ARTIST_PASSWORD_MAX_AVENTURA`, `ARTIST_PASSWORD_EL_REAL_SOPRANO` —
+  una contrasena por artista. Un artista que inicia sesion **solo ve su propia pagina** (Metricas,
+  Estudio, YouTube Studio, Campanas, Conexiones, Chat) — nada de los otros artistas, ni El sello, ni
+  el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos, AI Insights).
+
+La sesion es una cookie firmada (HMAC, `src/lib/auth.ts`) — no hay base de datos de usuarios, solo
+contrasenas por variable de entorno. Pon algo aleatorio en `AUTH_SECRET` (ej. `openssl rand -hex 32`)
+antes de usar esto en produccion; sin esa variable usa un secreto de desarrollo fijo, valido solo
+para probar localmente.
+
+La restriccion no es solo cosmetica: las rutas del servidor que ya existian para
+Chat/Estudio/Campanas/Importar-enlace (`requireArtistAccess()` en cada una) verifican que la sesion
+activa sea admin o sea exactamente ese artista antes de responder — un artista logueado no puede
+pedirle a la API que le muestre o genere contenido de otro artista aunque edite la peticion a mano.
+
+En la demo estatica de GitHub Pages esto no aplica (no hay servidor para validar sesiones), asi que
+esa version se queda siempre abierta.
 
 ## Proximos pasos para datos en vivo
 

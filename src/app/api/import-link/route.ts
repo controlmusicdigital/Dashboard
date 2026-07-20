@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { importFromLink } from "@/lib/claude/link-import";
 import { getArtist } from "@/lib/artists";
+import { requireArtistAccess } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -14,6 +15,8 @@ export async function POST(req: NextRequest) {
   if (!artist) {
     return NextResponse.json({ error: "Artista invalido" }, { status: 400 });
   }
+  const denied = requireArtistAccess(req, artist.id);
+  if (denied) return denied;
   if (!url || !url.trim()) {
     return NextResponse.json({ error: "Pega un enlace para analizar" }, { status: 400 });
   }

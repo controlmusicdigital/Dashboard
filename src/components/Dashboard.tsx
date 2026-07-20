@@ -18,15 +18,62 @@ import { HudStatusBar } from "./hud/HudStatusBar";
 import { NeuralCore } from "./hud/NeuralCore";
 import { NeuralStateProvider } from "@/lib/neural-state";
 import { buildLabelMetricsContext } from "@/lib/label-metrics";
+import type { ClientSession } from "./AuthGate";
 
 type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | "insights" | string;
 
-export function Dashboard() {
+export function Dashboard({ session, onLogout }: { session?: ClientSession | null; onLogout?: () => void }) {
   const [view, setView] = useState<View>("overview");
   const allData = useMemo(() => getAllArtistData(), []);
   const dataList = Object.values(allData);
   const labelData = useMemo(() => getLabelData(), []);
   const metricsContext = useMemo(() => buildLabelMetricsContext(), []);
+
+  if (session?.role === "artist") {
+    const data = allData[session.artistId];
+    return (
+      <NeuralStateProvider>
+        <GridBackground />
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-6 sm:px-6">
+          <header className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo.svg"
+                alt="Control Music Digital"
+                width={40}
+                height={40}
+                className="rounded-full"
+                style={{ filter: "drop-shadow(0 0 6px var(--accent-cyan))" }}
+              />
+              <div>
+                <div className="text-sm font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                  Control Music Digital
+                </div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Sesion de {session.artistName ?? data?.artist.name}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <HudStatusBar />
+              <ThemeToggle />
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium"
+                  style={{ border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
+                >
+                  Cerrar sesion
+                </button>
+              )}
+            </div>
+          </header>
+          <main>{data ? <ArtistView data={data} /> : null}</main>
+        </div>
+        <NeuralCore metricsContext={metricsContext} />
+      </NeuralStateProvider>
+    );
+  }
 
   return (
     <NeuralStateProvider>
@@ -53,6 +100,15 @@ export function Dashboard() {
             Datos de demostracion
           </span>
           <ThemeToggle />
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="rounded-full px-3 py-1.5 text-xs font-medium"
+              style={{ border: "1px solid var(--border-hairline)", color: "var(--text-secondary)" }}
+            >
+              Cerrar sesion
+            </button>
+          )}
         </div>
       </header>
 

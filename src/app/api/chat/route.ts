@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getArtist } from "@/lib/artists";
 import { buildSystemPrompt } from "@/lib/claude/persona";
 import { mockReply } from "@/lib/claude/mock";
+import { requireArtistAccess } from "@/lib/auth";
+import { streamChatGPTText } from "@/lib/ai/providers";
 
 export const runtime = "nodejs";
 
@@ -33,9 +35,34 @@ export async function POST(req: NextRequest) {
   if (!artist || !Array.isArray(messages) || messages.length === 0) {
     return new Response("Solicitud invalida", { status: 400 });
   }
+  const denied = requireArtistAccess(req, artist.id);
+  if (denied) return denied;
 
   const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const apiKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey && openaiKey) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          for await (const delta of streamChatGPTText(buildSystemPrompt(artist), messages)) {
+            controller.enqueue(encoder.encode(delta));
+          }
+          controller.close();
+        } catch (err) {
+          const reason = err instanceof Error ? err.message : String(err);
+          const mock = mockReply(artist, lastUserMessage);
+          controller.enqueue(encoder.encode(`${mock}\n\n[Nota: no se pudo contactar a ChatGPT: ${reason}]`));
+          controller.close();
+        }
+      },
+    });
+    return new Response(stream, {
+      headers: { "Content-Type": "text/plain; charset=utf-8", "X-Chat-Source": "chatgpt" },
+    });
+  }
 
   if (!apiKey) {
     const mock = mockReply(artist, lastUserMessage);

@@ -1,16 +1,214 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArtistData } from "@/lib/types";
 import { YouTubeVideo, formatCount, formatDuration, getYouTubeVideos } from "@/lib/youtube-studio";
 import { youtubeThumbnail } from "@/lib/youtube-thumb";
 import { logActivity } from "@/lib/team";
+import { STATIC_DEMO } from "@/lib/static-demo";
+import { formatCompact } from "@/lib/format";
 
 const STATUS_LABEL: Record<YouTubeVideo["status"], string> = {
   publico: "Publico",
   "no listado": "No listado",
   borrador: "Borrador",
 };
+
+interface YouTubeChannelInfo {
+  title: string;
+  thumbnailUrl: string;
+  subscriberCount: number;
+  viewCount: number;
+  videoCount: number;
+}
+
+interface YouTubeAnalyticsDay {
+  date: string;
+  views: number;
+  minutesWatched: number;
+  subscribersGained: number;
+}
+
+function YouTubeConnectPanel({ artistId }: { artistId: string }) {
+  const [loading, setLoading] = useState(true);
+  const [configured, setConfigured] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [channel, setChannel] = useState<YouTubeChannelInfo | null>(null);
+  const [analytics, setAnalytics] = useState<YouTubeAnalyticsDay[] | null>(null);
+  const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  async function refreshStatus() {
+    if (STATIC_DEMO) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/youtube/status?artistId=${encodeURIComponent(artistId)}`);
+      const data = await res.json();
+      setConfigured(Boolean(data.configured));
+      setConnected(Boolean(data.connected));
+      setChannel(data.channel ?? null);
+    } catch {
+      setConfigured(false);
+      setConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connectedFor = params.get("youtube_connected");
+    const err = params.get("youtube_error");
+    if (connectedFor === artistId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reflecting the OAuth redirect result back into the UI once
+      setNotice({ kind: "success", text: "Cuenta de YouTube conectada." });
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (err) {
+      setNotice({ kind: "error", text: `No se pudo conectar YouTube: ${err}` });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    refreshStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artistId]);
+
+  async function loadAnalytics() {
+    try {
+      const res = await fetch(`/api/youtube/stats?artistId=${encodeURIComponent(artistId)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "No se pudieron cargar las estadisticas");
+      setAnalytics(data.analytics ?? []);
+    } catch (err) {
+      setNotice({ kind: "error", text: err instanceof Error ? err.message : "No se pudieron cargar las estadisticas" });
+    }
+  }
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    try {
+      await fetch("/api/youtube/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artistId }),
+      });
+      setConnected(false);
+      setChannel(null);
+      setAnalytics(null);
+    } finally {
+      setDisconnecting(false);
+    }
+  }
+
+  const totalViews28d = analytics?.reduce((sum, d) => sum + d.views, 0) ?? 0;
+  const totalMinutes28d = analytics?.reduce((sum, d) => sum + d.minutesWatched, 0) ?? 0;
+  const totalSubsGained28d = analytics?.reduce((sum, d) => sum + d.subscribersGained, 0) ?? 0;
+
+  return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
+      <h3 className="mb-1 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
+        Conectar tu cuenta de YouTube
+      </h3>
+      <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+        Inicia sesion con tu cuenta de Google para ver las estadisticas reales de tu canal (vistas, tiempo de
+        reproduccion, suscriptores ganados) en vez de los datos de ejemplo.
+      </p>
+
+      {notice && (
+        <p className="mb-3 text-xs" style={{ color: notice.kind === "success" ? "var(--status-good)" : "var(--status-critical)" }}>
+          {notice.text}
+        </p>
+      )}
+
+      {STATIC_DEMO ? (
+        <p className="text-xs" style={{ color: "var(--status-warning)" }}>
+          No disponible en esta demo estatica (GitHub Pages) — funciona en la app completa con su propio servidor.
+        </p>
+      ) : loading ? (
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+          Verificando...
+        </p>
+      ) : !configured ? (
+        <p className="text-xs" style={{ color: "var(--status-warning)" }}>
+          Esta conexion todavia no esta configurada — hace falta un cliente de OAuth de Google
+          (GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET) en el servidor.
+        </p>
+      ) : connected ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {channel?.thumbnailUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- remote Google avatar, not an optimizable local asset
+              <img src={channel.thumbnailUrl} alt="" className="h-10 w-10 rounded-full" />
+            )}
+            <div>
+              <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                {channel?.title ?? "Cuenta conectada"}
+              </div>
+              {channel && (
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {formatCompact(channel.subscriberCount)} suscriptores · {formatCompact(channel.viewCount)} vistas totales
+                </div>
+              )}
+            </div>
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={loadAnalytics}
+                className="rounded-full px-3 py-1.5 text-xs font-semibold"
+                style={{ backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }}
+              >
+                Ver estadisticas (28d)
+              </button>
+              <button
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                className="rounded-full px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                style={{ border: "1px solid var(--status-critical)", color: "var(--status-critical)" }}
+              >
+                Desconectar
+              </button>
+            </div>
+          </div>
+          {analytics && (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Vistas
+                </div>
+                <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {formatCompact(totalViews28d)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Minutos vistos
+                </div>
+                <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {formatCompact(totalMinutes28d)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Suscriptores ganados
+                </div>
+                <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {formatCompact(totalSubsGained28d)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <a
+          href={`/api/youtube/auth/start?artistId=${encodeURIComponent(artistId)}`}
+          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
+          style={{ backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }}
+        >
+          Conectar con Google
+        </a>
+      )}
+    </div>
+  );
+}
 
 export function YouTubeStudio({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -81,6 +279,8 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
           ))}
         </div>
       </div>
+
+      <YouTubeConnectPanel artistId={artist.id} />
 
       <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}>
         <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>

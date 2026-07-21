@@ -89,9 +89,9 @@ un articulo) y usa Claude (`claude-opus-4-8` con la herramienta de busqueda/lect
 leerlo y armar un post inspirado en ese contenido, con el mismo formato que el resto del estudio.
 Usa `ANTHROPIC_API_KEY`; sin ella, muestra contenido de ejemplo. Sirve en `src/lib/claude/link-import.ts`.
 
-## Social Media Studio
+## Estudio de redes sociales
 
-Pestana "Social Media Studio" por artista: agrupa todos los estudios por plataforma (hoy YouTube
+Pestana "Estudio de redes sociales" por artista: agrupa todos los estudios por plataforma (hoy YouTube
 e Instagram) detras de un selector interno, en vez de una pestana por red — asi la barra principal
 no crece cada vez que se agrega una plataforma mas (`src/components/SocialMediaStudio.tsx`).
 
@@ -286,7 +286,7 @@ para todo el mundo:
   los tres artistas, El sello), igual que hoy.
 - `ARTIST_PASSWORD_PACHEMAN`, `ARTIST_PASSWORD_MAX_AVENTURA`, `ARTIST_PASSWORD_EL_REAL_SOPRANO` —
   una contrasena por artista. Un artista que inicia sesion **solo ve su propia pagina** (Metricas,
-  Estudio, Social Media Studio, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
+  Estudio, Estudio de redes sociales, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
   el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos).
 
 La sesion es una cookie firmada (HMAC, `src/lib/auth.ts`) — no hay base de datos de usuarios, solo

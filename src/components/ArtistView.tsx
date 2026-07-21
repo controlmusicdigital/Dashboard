@@ -43,7 +43,7 @@ export function ArtistView({ data }: { data: ArtistData }) {
             Estudio de contenido
           </SubTabButton>
           <SubTabButton active={subView === "social"} onClick={() => setSubView("social")}>
-            Social Media Studio
+            Estudio de redes sociales
           </SubTabButton>
           <SubTabButton active={subView === "campaigns"} onClick={() => setSubView("campaigns")}>
             Campanas

@@ -1,9 +1,8 @@
 import "server-only";
 import crypto from "crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { Redis } from "@upstash/redis";
 
 const STATE_SECRET = process.env.AUTH_SECRET || "cmd-dev-insecure-secret-change-me";
-const COOKIE_PREFIX = "cmd-yt-";
 
 const SCOPES = ["https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/yt-analytics.readonly"];
 
@@ -18,49 +17,39 @@ export function isYouTubeOAuthConfigured(): boolean {
   return Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET);
 }
 
-function sign(payload: string): string {
-  return crypto.createHmac("sha256", STATE_SECRET).update(payload).digest("base64url");
+// Tokens live in Redis (Upstash, via the Vercel Marketplace integration) keyed by artist ID —
+// shared across every device/browser that logs into that artist's or the admin's session,
+// unlike a cookie (tied to one browser) or a server-side file (Vercel's serverless filesystem
+// is read-only in production, so per-invocation file writes aren't reliably visible later).
+let redisClient: Redis | null = null;
+function getRedis(): Redis {
+  if (!redisClient) {
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
+    if (!url || !token) throw new Error("KV_REST_API_URL / KV_REST_API_TOKEN no estan configuradas");
+    redisClient = new Redis({ url, token });
+  }
+  return redisClient;
 }
 
-function cookieName(artistId: string): string {
-  return `${COOKIE_PREFIX}${artistId}`;
+function redisKey(artistId: string): string {
+  return `youtube-tokens:${artistId}`;
 }
 
-// Tokens are stored in a signed, httpOnly cookie rather than a server-side file:
-// Vercel's serverless functions have a read-only filesystem in production, so a
-// file written by one invocation isn't reliably visible to the next one.
-function encodeTokens(tokens: YouTubeTokens): string {
-  const payload = Buffer.from(JSON.stringify(tokens)).toString("base64url");
-  return `${payload}.${sign(payload)}`;
-}
-
-function decodeTokens(value: string | undefined): YouTubeTokens | null {
-  if (!value) return null;
-  const [payload, sig] = value.split(".");
-  if (!payload || !sig || sign(payload) !== sig) return null;
+export async function getStoredTokens(artistId: string): Promise<YouTubeTokens | null> {
   try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as YouTubeTokens;
+    return (await getRedis().get<YouTubeTokens>(redisKey(artistId))) ?? null;
   } catch {
     return null;
   }
 }
 
-export function getStoredTokens(req: NextRequest, artistId: string): YouTubeTokens | null {
-  return decodeTokens(req.cookies.get(cookieName(artistId))?.value);
+export async function saveTokens(artistId: string, tokens: YouTubeTokens): Promise<void> {
+  await getRedis().set(redisKey(artistId), tokens);
 }
 
-export function setTokensCookie(res: NextResponse, artistId: string, tokens: YouTubeTokens) {
-  res.cookies.set(cookieName(artistId), encodeTokens(tokens), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 180,
-  });
-}
-
-export function clearTokensCookie(res: NextResponse, artistId: string) {
-  res.cookies.delete(cookieName(artistId));
+export async function deleteTokens(artistId: string): Promise<void> {
+  await getRedis().del(redisKey(artistId));
 }
 
 // Signed, tamper-proof "state" param so the callback can trust which artist initiated
@@ -136,18 +125,12 @@ async function refreshAccessToken(tokens: YouTubeTokens): Promise<YouTubeTokens>
   return { ...tokens, accessToken: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
 }
 
-/**
- * Returns a valid access token for this artist, refreshing it first if needed. When a
- * refresh happens, the caller must persist `refreshed` back onto its response via
- * `setTokensCookie` (this function has no response to attach a Set-Cookie to itself).
- */
-export async function getValidAccessToken(
-  req: NextRequest,
-  artistId: string
-): Promise<{ accessToken: string; refreshed?: YouTubeTokens } | null> {
-  const tokens = getStoredTokens(req, artistId);
+/** Returns a valid access token for this artist, refreshing (and re-saving) it first if needed. */
+export async function getValidAccessToken(artistId: string): Promise<string | null> {
+  const tokens = await getStoredTokens(artistId);
   if (!tokens) return null;
-  if (Date.now() < tokens.expiresAt - 60_000) return { accessToken: tokens.accessToken };
+  if (Date.now() < tokens.expiresAt - 60_000) return tokens.accessToken;
   const refreshed = await refreshAccessToken(tokens);
-  return { accessToken: refreshed.accessToken, refreshed };
+  await saveTokens(artistId, refreshed);
+  return refreshed.accessToken;
 }

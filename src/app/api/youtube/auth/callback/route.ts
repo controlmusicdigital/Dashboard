@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForTokens, setTokensCookie, verifyOAuthState } from "@/lib/youtube-auth";
+import { exchangeCodeForTokens, saveTokens, verifyOAuthState } from "@/lib/youtube-auth";
 
 export const runtime = "nodejs";
 
@@ -21,9 +21,8 @@ export async function GET(req: NextRequest) {
   try {
     const redirectUri = `${origin}/api/youtube/auth/callback`;
     const tokens = await exchangeCodeForTokens(code, redirectUri);
-    const res = NextResponse.redirect(`${origin}/?youtube_connected=${verified.artistId}`);
-    setTokensCookie(res, verified.artistId, tokens);
-    return res;
+    await saveTokens(verified.artistId, tokens);
+    return NextResponse.redirect(`${origin}/?youtube_connected=${verified.artistId}`);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     return NextResponse.redirect(`${origin}/?youtube_error=${encodeURIComponent(reason)}`);

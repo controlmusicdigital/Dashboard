@@ -54,6 +54,9 @@ export interface Artist {
   bio: string;
   initials: string;
   accent: string; // categorical slot hex for this artist, used consistently across charts
+  youtubeHandle?: string; // real @handle (no @), used to target the right channel — the OAuth'd
+  // Google account may manage several Brand Account channels, and the API's "mine" flag only
+  // ever returns one default one, not necessarily this artist's
 }
 
 export interface ArtistData {

@@ -19,9 +19,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const [channel, analytics, videos] = await Promise.all([
-      fetchChannelInfo(token.accessToken),
-      fetchChannelAnalytics(token.accessToken),
-      fetchChannelVideos(token.accessToken),
+      fetchChannelInfo(token.accessToken, artist.youtubeHandle),
+      fetchChannelAnalytics(token.accessToken, artist.youtubeHandle),
+      fetchChannelVideos(token.accessToken, artist.youtubeHandle),
     ]);
     const res = NextResponse.json({ channel, analytics, videos });
     if (token.refreshed) setTokensCookie(res, artist.id, token.refreshed);

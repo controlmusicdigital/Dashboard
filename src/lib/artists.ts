@@ -11,6 +11,7 @@ export const artists: Artist[] = [
     bio: "Referente de la musica urbana dominicana con proyección internacional.",
     initials: "PM",
     accent: "var(--series-1)",
+    youtubeHandle: "pachemanrd",
   },
   {
     id: "max-aventura",

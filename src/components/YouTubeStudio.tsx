@@ -37,7 +37,6 @@ function YouTubeConnectPanel({ artistId, onConnectionChange }: { artistId: strin
   const [analytics, setAnalytics] = useState<YouTubeAnalyticsDay[] | null>(null);
   const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<unknown>(null);
 
   async function refreshStatus() {
     if (STATIC_DEMO) {
@@ -50,7 +49,6 @@ function YouTubeConnectPanel({ artistId, onConnectionChange }: { artistId: strin
       setConfigured(Boolean(data.configured));
       setConnected(Boolean(data.connected));
       setChannel(data.channel ?? null);
-      setDebugInfo(data.debug || data.error ? { ...data.debug, apiError: data.error } : null);
       onConnectionChange?.(Boolean(data.connected));
     } catch {
       setConfigured(false);
@@ -210,14 +208,6 @@ function YouTubeConnectPanel({ artistId, onConnectionChange }: { artistId: strin
         >
           Conectar con Google
         </a>
-      )}
-      {debugInfo != null && (
-        <pre
-          className="mt-3 overflow-x-auto rounded-lg p-2 text-[10px]"
-          style={{ backgroundColor: "var(--page-plane)", color: "var(--text-muted)" }}
-        >
-          {JSON.stringify(debugInfo, null, 2)}
-        </pre>
       )}
     </div>
   );

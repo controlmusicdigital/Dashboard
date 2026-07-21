@@ -25,9 +25,20 @@ async function googleGet(url: string, accessToken: string) {
   return res.json();
 }
 
-export async function fetchChannelInfo(accessToken: string): Promise<YouTubeChannelInfo> {
+// "mine=true" only ever returns the OAuth'd Google account's single default channel — not
+// helpful when that account manages several Brand Account channels (common for a label managing
+// multiple artists). When we know the artist's real @handle, target that channel directly instead.
+function channelSelector(handle?: string): string {
+  return handle ? `forHandle=${encodeURIComponent(handle)}` : "mine=true";
+}
+
+interface ResolvedChannel extends YouTubeChannelInfo {
+  uploadsPlaylistId: string | null;
+}
+
+async function resolveChannel(accessToken: string, handle?: string): Promise<ResolvedChannel> {
   const data = await googleGet(
-    "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
+    `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&${channelSelector(handle)}`,
     accessToken
   );
   const channel = data.items?.[0];
@@ -39,7 +50,13 @@ export async function fetchChannelInfo(accessToken: string): Promise<YouTubeChan
     subscriberCount: Number(channel.statistics.subscriberCount ?? 0),
     viewCount: Number(channel.statistics.viewCount ?? 0),
     videoCount: Number(channel.statistics.videoCount ?? 0),
+    uploadsPlaylistId: channel.contentDetails?.relatedPlaylists?.uploads ?? null,
   };
+}
+
+export async function fetchChannelInfo(accessToken: string, handle?: string): Promise<YouTubeChannelInfo> {
+  const { id, title, thumbnailUrl, subscriberCount, viewCount, videoCount } = await resolveChannel(accessToken, handle);
+  return { id, title, thumbnailUrl, subscriberCount, viewCount, videoCount };
 }
 
 export interface YouTubeRealVideo {
@@ -67,12 +84,8 @@ function mapPrivacyStatus(status: string): YouTubeRealVideo["status"] {
   return "publico";
 }
 
-export async function fetchChannelVideos(accessToken: string, maxResults = 12): Promise<YouTubeRealVideo[]> {
-  const channelData = await googleGet(
-    "https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true",
-    accessToken
-  );
-  const uploadsPlaylistId = channelData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+export async function fetchChannelVideos(accessToken: string, handle?: string, maxResults = 12): Promise<YouTubeRealVideo[]> {
+  const { uploadsPlaylistId } = await resolveChannel(accessToken, handle);
   if (!uploadsPlaylistId) return [];
 
   const playlistData = await googleGet(
@@ -110,14 +123,18 @@ export async function fetchChannelVideos(accessToken: string, maxResults = 12): 
   );
 }
 
-export async function fetchChannelAnalytics(accessToken: string, days = 28): Promise<YouTubeAnalyticsDay[]> {
+export async function fetchChannelAnalytics(accessToken: string, handle?: string, days = 28): Promise<YouTubeAnalyticsDay[]> {
+  // youtubeanalytics' "channel==MINE" has the same single-default-channel limitation as
+  // "mine=true" above, so resolve the real channel ID first and query analytics for that.
+  const { id: channelId } = await resolveChannel(accessToken, handle);
+
   const end = new Date();
   const start = new Date();
   start.setDate(start.getDate() - days);
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   const params = new URLSearchParams({
-    ids: "channel==MINE",
+    ids: `channel==${channelId}`,
     startDate: fmt(start),
     endDate: fmt(end),
     metrics: "views,estimatedMinutesWatched,subscribersGained",

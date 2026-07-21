@@ -21,24 +21,11 @@ export async function GET(req: NextRequest) {
   try {
     const redirectUri = `${origin}/api/youtube/auth/callback`;
     const tokens = await exchangeCodeForTokens(code, redirectUri);
-    console.log("[yt-debug] callback: exchanged tokens ok", {
-      artistId: verified.artistId,
-      hasAccessToken: Boolean(tokens.accessToken),
-      hasRefreshToken: Boolean(tokens.refreshToken),
-      accessTokenLen: tokens.accessToken?.length ?? 0,
-      refreshTokenLen: tokens.refreshToken?.length ?? 0,
-      scope: tokens.scope,
-    });
     const res = NextResponse.redirect(`${origin}/?youtube_connected=${verified.artistId}`);
     setTokensCookie(res, verified.artistId, tokens);
-    console.log("[yt-debug] callback: cookie set on response", {
-      cookieOnResponse: Boolean(res.cookies.get(`cmd-yt-${verified.artistId}`)),
-      setCookieHeaderCount: res.headers.getSetCookie?.().length ?? "n/a",
-    });
     return res;
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
-    console.log("[yt-debug] callback: FAILED", reason);
     return NextResponse.redirect(`${origin}/?youtube_error=${encodeURIComponent(reason)}`);
   }
 }

@@ -89,11 +89,17 @@ un articulo) y usa Claude (`claude-opus-4-8` con la herramienta de busqueda/lect
 leerlo y armar un post inspirado en ese contenido, con el mismo formato que el resto del estudio.
 Usa `ANTHROPIC_API_KEY`; sin ella, muestra contenido de ejemplo. Sirve en `src/lib/claude/link-import.ts`.
 
-## YouTube Studio
+## Social Media Studio
 
-Pestana "YouTube Studio" por artista: una mini version del YouTube Studio real — lista de videos
-con miniatura, vistas/likes/comentarios, estado (Publico/No listado/Borrador) y fecha, mas un
-formulario para "subir" un video nuevo (titulo + archivo). La subida sigue siendo **simulada**.
+Pestana "Social Media Studio" por artista: agrupa todos los estudios por plataforma (hoy YouTube
+e Instagram) detras de un selector interno, en vez de una pestana por red — asi la barra principal
+no crece cada vez que se agrega una plataforma mas (`src/components/SocialMediaStudio.tsx`).
+
+### YouTube Studio
+
+Una mini version del YouTube Studio real — lista de videos con miniatura, vistas/likes/comentarios,
+estado (Publico/No listado/Borrador) y fecha, mas un formulario para "subir" un video nuevo (titulo
++ archivo). La subida sigue siendo **simulada**.
 
 La seccion "Conectar tu cuenta de YouTube" **si es real**: cada artista inicia sesion con su propia
 cuenta de Google (OAuth 2.0) y ve las estadisticas organicas reales de su canal — vistas, minutos
@@ -105,11 +111,10 @@ OAuth en Google Cloud Console — instrucciones completas en `.env.local.example
 `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`. Sin esas llaves, la seccion muestra
 honestamente que todavia no esta configurada, en vez de un boton que no hace nada.
 
-## Instagram Studio
+### Instagram Studio
 
-Pestana "Instagram Studio" por artista: seguidores y publicaciones reales de su cuenta de
-Instagram (foto/video/carrusel, likes, comentarios y fecha) en una cuadricula, igual de real que
-YouTube Studio arriba.
+Seguidores y publicaciones reales de la cuenta de Instagram del artista (foto/video/carrusel,
+likes, comentarios y fecha) en una cuadricula, igual de real que YouTube Studio arriba.
 
 La seccion "Conectar con Instagram" usa la "Instagram API con inicio de sesion de Instagram"
 (Business Login) — el artista inicia sesion directamente con su cuenta profesional de Instagram
@@ -281,7 +286,7 @@ para todo el mundo:
   los tres artistas, El sello), igual que hoy.
 - `ARTIST_PASSWORD_PACHEMAN`, `ARTIST_PASSWORD_MAX_AVENTURA`, `ARTIST_PASSWORD_EL_REAL_SOPRANO` —
   una contrasena por artista. Un artista que inicia sesion **solo ve su propia pagina** (Metricas,
-  Estudio, YouTube Studio, Instagram Studio, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
+  Estudio, Social Media Studio, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
   el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos).
 
 La sesion es una cookie firmada (HMAC, `src/lib/auth.ts`) — no hay base de datos de usuarios, solo

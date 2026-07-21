@@ -8,8 +8,9 @@ import { ArtistStudio } from "./ArtistStudio";
 import { ArtistCampaigns } from "./ArtistCampaigns";
 import { ConnectionsPanel } from "./ConnectionsPanel";
 import { YouTubeStudio } from "./YouTubeStudio";
+import { InstagramStudio } from "./InstagramStudio";
 
-type SubView = "metrics" | "studio" | "youtube" | "campaigns" | "connections";
+type SubView = "metrics" | "studio" | "youtube" | "instagram" | "campaigns" | "connections";
 
 export function ArtistView({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -45,6 +46,9 @@ export function ArtistView({ data }: { data: ArtistData }) {
           <SubTabButton active={subView === "youtube"} onClick={() => setSubView("youtube")}>
             YouTube Studio
           </SubTabButton>
+          <SubTabButton active={subView === "instagram"} onClick={() => setSubView("instagram")}>
+            Instagram Studio
+          </SubTabButton>
           <SubTabButton active={subView === "campaigns"} onClick={() => setSubView("campaigns")}>
             Campanas
           </SubTabButton>
@@ -68,6 +72,7 @@ export function ArtistView({ data }: { data: ArtistData }) {
       )}
       {subView === "studio" && <ArtistStudio artist={artist} />}
       {subView === "youtube" && <YouTubeStudio data={data} />}
+      {subView === "instagram" && <InstagramStudio data={data} />}
       {subView === "campaigns" && <ArtistCampaigns artist={artist} />}
       {subView === "connections" && <ConnectionsPanel entity={artist} />}
     </div>

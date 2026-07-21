@@ -22,6 +22,7 @@ export const artists: Artist[] = [
     bio: "Ex-integrante de Aventura, hoy en carrera solista dentro de la bachata urbana.",
     initials: "MX",
     accent: "var(--series-2)",
+    youtubeHandle: "maxsantosofi",
   },
   {
     id: "el-real-soprano",
@@ -32,6 +33,7 @@ export const artists: Artist[] = [
     bio: "Voz emergente del dembow con fuerte tracción en redes.",
     initials: "RS",
     accent: "var(--series-3)",
+    youtubeHandle: "Elrealsoprano",
   },
 ];
 

@@ -169,27 +169,39 @@ audiencia), genera el copy publicitario con Gemini o ChatGPT, y la pasa a "borra
 plataforma requiere las cuentas de Google Ads / Meta Ads / TikTok Ads conectadas por API,
 igual que el resto de integraciones pendientes.
 
-## Noticias y farandula (Claude + busqueda web)
+## Noticias y farandula (RSS/HTML directo de una lista fija de sitios)
 
-Pestana "Noticias" (nivel sello, junto a "Resumen general"): busca titulares recientes de la
-industria musical y farandula de Republica Dominicana usando Claude (`claude-opus-4-8`) con la
-herramienta de busqueda web integrada de la API — sin necesitar una API key de noticias
-aparte, solo `ANTHROPIC_API_KEY`.
+Pestana "Noticias" (nivel sello, junto a "Resumen general"): trae titulares reales de 14 fuentes
+dominicanas curadas a mano — nada de busqueda con IA, asi que solo puede aparecer contenido de
+esos sitios exactos. La lista completa vive en `src/lib/news-sources.ts`, agrupada en 4
+categorias (con pestanas para filtrar en la interfaz):
+
+- **Nacional**: Listin Diario, Diario Libre, El Caribe, El Nacional, Hoy
+- **Ultima hora**: Noticias SIN, Al Momento, Acento, De Ultimo Minuto
+- **Farandula**: MasVip, Luminarias TV, Listin Diario Entretenimiento, Diario Libre Revista
+- **English**: Dominican Today
+
+La mayoria se leen de su feed RSS (`src/lib/news-rss.ts`, via `fast-xml-parser`). El Caribe y
+Acento no exponen RSS, asi que esos dos se leen directo de su pagina de inicio
+(`src/lib/news-scrape.ts`, via `cheerio`) buscando los titulares por su selector CSS. Todo se
+combina y ordena por fecha en `src/lib/news-fetch.ts` — no hace falta ninguna API key para que
+esto funcione.
+
+(Alofoke Media Group estaba en la lista original pero su dominio `alofokeradioshow.com` resulto
+ser un dominio expirado/parkeado, no su sitio real — se quedo afuera hasta tener la URL correcta.)
 
 - Se actualiza sola cada hora mientras el panel este abierto en el navegador, y tiene un
-  boton "Actualizar ahora" para forzar una busqueda.
+  boton "Actualizar ahora" para forzar una recarga.
 - Boton "Activar notificaciones" pide permiso de notificaciones del navegador; una vez
   concedido, cada actualizacion (automatica o manual) dispara una notificacion del sistema
   con el numero de titulares nuevos. Esto es una notificacion de navegador — solo funciona
   mientras el panel sigue abierto en una pestana, no es una notificacion push en segundo
   plano ni llega al celular sin el navegador abierto.
-- Sin `ANTHROPIC_API_KEY`, muestra titulares de ejemplo (basados en nuestro propio roster,
-  nunca noticias inventadas sobre terceros reales) con la etiqueta "Datos de ejemplo".
-- La busqueda ocurre en `src/lib/claude/news.ts` (servidor); la llave nunca llega al
-  navegador.
+- Si algun sitio falla al cargar (o si todos fallan, ej. sin conexion a internet), lo indica
+  con un aviso en vez de fallar en silencio; si absolutamente ninguno responde, muestra
+  titulares de ejemplo con la etiqueta "Datos de ejemplo".
 - Cada titular tiene una imagen ilustrativa generada (no es una foto real extraida del
-  articulo — Claude no confirma que exista una imagen real asociada, asi que preferimos un
-  thumbnail decorativo consistente antes que arriesgar una imagen rota o incorrecta).
+  articulo, para evitar imagenes rotas o con derechos de autor de terceros).
 - Boton "Compartir" por titular: para X y Facebook abre su enlace real de "compartir"
   (`intent/tweet` y `sharer.php`) en una pestana nueva — no hace falta conectar cuenta.
   Instagram y TikTok no tienen un enlace de compartir desde la web, asi que copiamos el

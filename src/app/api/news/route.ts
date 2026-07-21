@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { fetchIndustryNews } from "@/lib/claude/news";
+import { fetchAllNews } from "@/lib/news-fetch";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function GET() {
-  const result = await fetchIndustryNews();
+  const result = await fetchAllNews();
   return NextResponse.json(result);
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NewsItem } from "@/lib/news-types";
+import { NEWS_CATEGORY_LABEL, NewsCategory } from "@/lib/news-sources";
 import { newsThumbnail } from "@/lib/news-thumb";
 import { PlatformIcon } from "@/lib/platforms";
 import { SHARE_PLATFORMS, buildShare } from "@/lib/share";
@@ -10,16 +11,23 @@ import { STATIC_DEMO } from "@/lib/static-demo";
 import { mockNews } from "@/lib/claude/news-mock";
 
 const REFRESH_MS = 60 * 60 * 1000; // 1 hour
+const CATEGORIES = Object.keys(NEWS_CATEGORY_LABEL) as NewsCategory[];
 
 export function NewsFeed() {
   const [items, setItems] = useState<NewsItem[]>([]);
-  const [source, setSource] = useState<"gemini" | "claude" | "mock" | null>(null);
+  const [source, setSource] = useState<"sites" | "mock" | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<NewsCategory | "all">("all");
   const [note, setNote] = useState<string | undefined>();
   const [generatedAt, setGeneratedAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
   const hasLoadedOnce = useRef(false);
+
+  const filteredItems = useMemo(
+    () => (categoryFilter === "all" ? items : items.filter((i) => i.category === categoryFilter)),
+    [items, categoryFilter]
+  );
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time browser capability check, unavailable during SSR
@@ -32,7 +40,7 @@ export function NewsFeed() {
     if (STATIC_DEMO) {
       setItems(mockNews());
       setSource("mock");
-      setNote("Demo estatica — la busqueda en vivo con Claude necesita la app completa con servidor.");
+      setNote("Demo estatica — leer los sitios de noticias en vivo necesita la app completa con servidor.");
       setGeneratedAt(new Date());
       setLoading(false);
       return;
@@ -47,8 +55,8 @@ export function NewsFeed() {
       setGeneratedAt(new Date(data.generatedAt));
 
       if (hasLoadedOnce.current && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        new Notification("Noticias de la industria actualizadas", {
-          body: `${(data.items ?? []).length} titulares de musica y farandula en Republica Dominicana.`,
+        new Notification("Noticias actualizadas", {
+          body: `${(data.items ?? []).length} titulares nuevos de los sitios configurados.`,
         });
       }
       hasLoadedOnce.current = true;
@@ -81,7 +89,7 @@ export function NewsFeed() {
             Noticias y farandula
           </h2>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Industria musical de Republica Dominicana · se actualiza automaticamente cada hora
+            Ultima hora, nacional y farandula de Republica Dominicana · se actualiza automaticamente cada hora
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -110,7 +118,7 @@ export function NewsFeed() {
               border: `1px solid ${source === "mock" ? "var(--status-warning)" : "var(--status-good)"}`,
             }}
           >
-            {source === "mock" ? "Datos de ejemplo" : "Busqueda en vivo"}
+            {source === "mock" ? "Datos de ejemplo" : "Sitios en vivo"}
           </span>
           <button
             onClick={load}
@@ -139,8 +147,36 @@ export function NewsFeed() {
         </p>
       )}
 
+      <div className="flex flex-wrap gap-2 rounded-full p-1" style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", width: "fit-content" }}>
+        <button
+          onClick={() => setCategoryFilter("all")}
+          className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors"
+          style={
+            categoryFilter === "all"
+              ? { backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }
+              : { color: "var(--text-secondary)" }
+          }
+        >
+          Todos
+        </button>
+        {CATEGORIES.map((c) => (
+          <button
+            key={c}
+            onClick={() => setCategoryFilter(c)}
+            className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors"
+            style={
+              categoryFilter === c
+                ? { backgroundColor: "var(--text-primary)", color: "var(--page-plane)" }
+                : { color: "var(--text-secondary)" }
+            }
+          >
+            {NEWS_CATEGORY_LABEL[c]}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {items.map((item, i) => (
+        {filteredItems.map((item, i) => (
           <article
             key={i}
             className="flex flex-col gap-3 rounded-2xl"
@@ -158,9 +194,11 @@ export function NewsFeed() {
                   item.title
                 )}
               </h3>
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                {item.summary}
-              </p>
+              {item.summary && (
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                  {item.summary}
+                </p>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <div className="text-xs" style={{ color: "var(--text-muted)" }}>
                   {item.source} · {item.publishedAt}
@@ -170,7 +208,7 @@ export function NewsFeed() {
             </div>
           </article>
         ))}
-        {items.length === 0 && !loading && (
+        {filteredItems.length === 0 && !loading && (
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
             No hay noticias disponibles todavia.
           </p>

@@ -1,5 +1,6 @@
 import "server-only";
 import * as cheerio from "cheerio";
+import type { AnyNode } from "domhandler";
 import { NewsItem } from "./news-types";
 import { NEWS_FETCH_HEADERS, cleanText } from "./news-text";
 
@@ -39,8 +40,23 @@ export async function fetchScrapedHeadlines(
       url,
       publishedAt: "en portada",
       publishedAtMs: now - items.length * 60_000,
+      imageUrl: findNearbyImage($, el),
     });
   });
 
   return items;
+}
+
+// Walks up from the headline link to its containing card/article and grabs the first <img> in
+// it. Some sites (El Caribe) lazy-load images, leaving a data: URI placeholder in src and the
+// real URL in data-lazy-src/data-src instead.
+function findNearbyImage($: cheerio.CheerioAPI, el: AnyNode): string | undefined {
+  let container = $(el).closest("article");
+  if (container.length === 0) container = $(el).parents().eq(3);
+  const img = container.find("img").first();
+  if (img.length === 0) return undefined;
+
+  const src = img.attr("data-lazy-src") || img.attr("data-src") || img.attr("src");
+  if (!src || src.startsWith("data:")) return undefined;
+  return src;
 }

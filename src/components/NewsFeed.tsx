@@ -182,8 +182,16 @@ export function NewsFeed() {
             className="flex flex-col gap-3 rounded-2xl"
             style={{ backgroundColor: "var(--surface-1)", border: "1px solid var(--border-hairline)" }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- generated data-URI thumbnail, not an optimizable remote asset */}
-            <img src={newsThumbnail(item.title)} alt="" className="h-32 w-full rounded-t-2xl object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- remote article photo, or a generated data-URI placeholder when the source has none */}
+            <img
+              src={item.imageUrl || newsThumbnail(item.title)}
+              alt=""
+              className="h-32 w-full rounded-t-2xl object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = newsThumbnail(item.title);
+              }}
+            />
             <div className="flex flex-col gap-2 px-5 pb-5">
               <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 {item.url ? (

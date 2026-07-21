@@ -8,6 +8,7 @@ export interface NewsItem {
   publishedAt: string;
   publishedAtMs?: number;
   category?: NewsCategory;
+  imageUrl?: string;
 }
 
 export interface NewsResult {

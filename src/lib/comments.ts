@@ -1,7 +1,6 @@
 import { mulberry32, randInt } from "./rng";
 import { PlatformId } from "./types";
 import { artists } from "./artists";
-import { label } from "./label";
 
 export const COMMENT_PLATFORMS: PlatformId[] = ["instagram", "tiktok", "facebook", "x", "youtube"];
 
@@ -71,6 +70,5 @@ function generateForEntity(entityId: string, entityName: string): Comment[] {
 export function getAllComments(): Comment[] {
   const all: Comment[] = [];
   for (const a of artists) all.push(...generateForEntity(a.id, a.name));
-  all.push(...generateForEntity(label.id, label.name));
   return all.sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1));
 }

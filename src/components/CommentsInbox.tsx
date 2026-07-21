@@ -5,10 +5,9 @@ import { Comment, COMMENT_PLATFORMS, getAllComments } from "@/lib/comments";
 import { PLATFORM_META, PlatformIcon } from "@/lib/platforms";
 import { PlatformId } from "@/lib/types";
 import { artists } from "@/lib/artists";
-import { label } from "@/lib/label";
 import { logActivity } from "@/lib/team";
 
-const ENTITIES = [...artists, label];
+const ENTITIES = artists;
 
 function timeAgo(iso: string): string {
   const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -63,9 +62,8 @@ export function CommentsInbox() {
           Comentarios
         </h2>
         <p className="mt-1 max-w-2xl text-xs" style={{ color: "var(--text-muted)" }}>
-          Todos los comentarios de Instagram, TikTok, Facebook, X y YouTube de cada artista y de El sello, en un
-          solo lugar — con {unrepliedCount} sin responder segun los filtros de abajo. Datos de ejemplo hasta
-          conectar cada cuenta real.
+          Todos los comentarios de Instagram, TikTok, Facebook, X y YouTube de cada artista, en un solo lugar — con{" "}
+          {unrepliedCount} sin responder segun los filtros de abajo. Datos de ejemplo hasta conectar cada cuenta real.
         </p>
       </div>
 

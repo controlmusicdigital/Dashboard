@@ -129,8 +129,8 @@ de poder conectar — igual que los "Test users" de Google para YouTube.
 ## Comentarios (bandeja unificada)
 
 Pestana "Comentarios" (nivel general): todos los comentarios de Instagram, TikTok, Facebook, X y
-YouTube de los tres artistas y de El sello, en un solo lugar, cada uno etiquetado con la red y el
-artista de origen. Filtra por artista/sello, por red social, o busca por texto/usuario; el boton
+YouTube de los tres artistas, en un solo lugar, cada uno etiquetado con la red y el artista de
+origen. Filtra por artista, por red social, o busca por texto/usuario; el boton
 "Responder" simula una respuesta (se guarda solo en esta sesion del navegador) y queda registrada
 en la actividad de "Mi equipo".
 
@@ -179,24 +179,16 @@ aparte, solo `ANTHROPIC_API_KEY`.
   Instagram y TikTok no tienen un enlace de compartir desde la web, asi que copiamos el
   titular + link al portapapeles para pegarlo en la app.
 
-## Conexiones (por artista y para el sello)
+## Conexiones (por artista)
 
-Cada artista — y tambien "El sello" (ver mas abajo) — tiene una pestana "Conexiones" con la
-misma tabla de conectores del panel de integraciones: Spotify, YouTube, Instagram, TikTok,
-Facebook, X, Google Ads y DistroKid, cada uno con boton "Conectar".
+Cada artista tiene una pestana "Conexiones" con la misma tabla de conectores del panel de
+integraciones: Spotify, YouTube, Instagram, TikTok, Facebook, X, Google Ads y DistroKid, cada
+uno con boton "Conectar".
 
 Al conectar, el token de acceso se guarda **solo en ese navegador** (`localStorage`), nunca se
 envia a ningun servidor. Esto deja la conexion lista y marcada como "Conectada" — el siguiente
 paso, cuando quieran, es que las tarjetas de metricas usen ese token para llamar a la API real
 de cada plataforma en lugar de mostrar datos de ejemplo (ver "Proximos pasos" abajo).
-
-## El sello (vista de Control Music Digital)
-
-Pestana "El sello" (nivel general, junto a "Resumen general" y "Noticias"): la misma vista
-completa que tiene cada artista — Metricas, Estudio de contenido, Campanas, Conexiones y Chat —
-pero para las cuentas oficiales del sello en conjunto, no de un artista individual. Los datos
-de ejemplo se generan en `src/lib/label-data.ts` reutilizando el mismo generador que los
-artistas (`src/lib/mock-data.ts`).
 
 ## Mi equipo (invitaciones y actividad)
 
@@ -283,11 +275,11 @@ configures **al menos una** contrasena en `.env.local`, se activa una pantalla d
 para todo el mundo:
 
 - `ADMIN_PASSWORD` — una sola cuenta de administrador que ve el panel completo (todas las pestanas,
-  los tres artistas, El sello), igual que hoy.
+  los tres artistas), igual que hoy.
 - `ARTIST_PASSWORD_PACHEMAN`, `ARTIST_PASSWORD_MAX_AVENTURA`, `ARTIST_PASSWORD_EL_REAL_SOPRANO` —
   una contrasena por artista. Un artista que inicia sesion **solo ve su propia pagina** (Metricas,
-  Estudio, Estudio de redes sociales, Campanas, Conexiones) — nada de los otros artistas, ni El sello, ni
-  el resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos).
+  Estudio, Estudio de redes sociales, Campanas, Conexiones) — nada de los otros artistas ni del
+  resto de pestanas generales (Noticias, Mi equipo, Difusion, Comentarios, Archivos).
 
 La sesion es una cookie firmada (HMAC, `src/lib/auth.ts`) — no hay base de datos de usuarios, solo
 contrasenas por variable de entorno. Pon algo aleatorio en `AUTH_SECRET` (ej. `openssl rand -hex 32`)

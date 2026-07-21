@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { getAllArtistData } from "@/lib/mock-data";
-import { getLabelData } from "@/lib/label-data";
 import { Overview } from "./Overview";
 import { ArtistView } from "./ArtistView";
 import { ThemeToggle } from "./ThemeToggle";
@@ -19,14 +18,13 @@ import { NeuralStateProvider } from "@/lib/neural-state";
 import { buildLabelMetricsContext } from "@/lib/label-metrics";
 import type { ClientSession } from "./AuthGate";
 
-type View = "overview" | "news" | "label" | "team" | "broadcast" | "comments" | "files" | string;
+type View = "overview" | "news" | "team" | "broadcast" | "comments" | "files" | string;
 
 export function Dashboard({ session, onLogout }: { session?: ClientSession | null; onLogout?: () => void }) {
   const [view, setView] = useState<View>("overview");
   const allData = useMemo(() => getAllArtistData(), []);
   const dataList = Object.values(allData);
-  const labelData = useMemo(() => getLabelData(), []);
-  const metricsContext = useMemo(() => buildLabelMetricsContext(), []);
+  const metricsContext = useMemo(() => buildLabelMetricsContext(dataList), [dataList]);
 
   if (session?.role === "artist") {
     const data = allData[session.artistId];
@@ -118,9 +116,6 @@ export function Dashboard({ session, onLogout }: { session?: ClientSession | nul
         <TabButton active={view === "news"} onClick={() => setView("news")}>
           Noticias
         </TabButton>
-        <TabButton active={view === "label"} onClick={() => setView("label")}>
-          El sello
-        </TabButton>
         <TabButton active={view === "team"} onClick={() => setView("team")}>
           Mi equipo
         </TabButton>
@@ -145,8 +140,6 @@ export function Dashboard({ session, onLogout }: { session?: ClientSession | nul
           <Overview dataList={dataList} onSelectArtist={setView} />
         ) : view === "news" ? (
           <NewsFeed />
-        ) : view === "label" ? (
-          <ArtistView data={labelData} />
         ) : view === "team" ? (
           <TeamPanel />
         ) : view === "broadcast" ? (

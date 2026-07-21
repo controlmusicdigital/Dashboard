@@ -5,13 +5,15 @@ import { ArtistData } from "@/lib/types";
 import { PlatformIcon } from "@/lib/platforms";
 import { YouTubeStudio } from "./YouTubeStudio";
 import { InstagramStudio } from "./InstagramStudio";
+import { TikTokStudio } from "./TikTokStudio";
 
 // Every per-platform studio (real OAuth connection + content grid) lives here as an inner tab.
-// Add new ones (TikTok, Facebook...) to this list as they get built, instead of growing the
-// artist's top-level tab bar with one entry per platform.
+// Add new ones (Facebook...) to this list as they get built, instead of growing the artist's
+// top-level tab bar with one entry per platform.
 const STUDIOS = [
   { id: "youtube", label: "YouTube", Component: YouTubeStudio },
   { id: "instagram", label: "Instagram", Component: InstagramStudio },
+  { id: "tiktok", label: "TikTok", Component: TikTokStudio },
 ] as const;
 
 type StudioId = (typeof STUDIOS)[number]["id"];

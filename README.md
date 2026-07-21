@@ -91,9 +91,10 @@ Usa `ANTHROPIC_API_KEY`; sin ella, muestra contenido de ejemplo. Sirve en `src/l
 
 ## Estudio de redes sociales
 
-Pestana "Estudio de redes sociales" por artista: agrupa todos los estudios por plataforma (hoy YouTube
-e Instagram) detras de un selector interno, en vez de una pestana por red — asi la barra principal
-no crece cada vez que se agrega una plataforma mas (`src/components/SocialMediaStudio.tsx`).
+Pestana "Estudio de redes sociales" por artista: agrupa todos los estudios por plataforma (hoy
+YouTube, Instagram y TikTok) detras de un selector interno, en vez de una pestana por red — asi
+la barra principal no crece cada vez que se agrega una plataforma mas
+(`src/components/SocialMediaStudio.tsx`).
 
 ### YouTube Studio
 
@@ -125,6 +126,21 @@ agregar el producto Instagram — instrucciones completas en `.env.local.example
 `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET`. Mientras la app no pase la revision de Meta (modo
 desarrollo/Standard Access), cada artista debe aceptar una invitacion como "Instagram tester" antes
 de poder conectar — igual que los "Test users" de Google para YouTube.
+
+### TikTok Studio
+
+Seguidores, likes totales y videos reales (vistas/likes/comentarios, duracion y fecha) del
+artista en una cuadricula vertical, igual de real que YouTube e Instagram Studio arriba.
+
+La seccion "Conectar con TikTok" usa TikTok Login Kit con los scopes de solo lectura
+`user.info.basic`, `user.info.stats` y `video.list` (`src/lib/tiktok-auth.ts`,
+`src/lib/tiktok-api.ts`) — todos disponibles en modo Sandbox sin pasar por la revision de
+TikTok. Los tokens de acceso duran solo 24 horas pero se refrescan solos (el refresh token dura
+365 dias); se guardan en el mismo Redis que YouTube e Instagram, por artista. Para activarlo hace
+falta crear una app en TikTok for Developers y agregar el producto Login Kit — instrucciones
+completas en `.env.local.example` junto a `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET`. Mientras
+la app este en Sandbox, cada artista debe agregarse como "Target user" antes de poder conectar —
+igual que los "Test users"/"Instagram tester" de Google e Instagram.
 
 ## Comentarios (bandeja unificada)
 

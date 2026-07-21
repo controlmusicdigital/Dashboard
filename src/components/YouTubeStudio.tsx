@@ -221,6 +221,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
   const [realHeader, setRealHeader] = useState<{ headline: { value: string; label: string }; stats: { label: string; value: string }[] } | null>(
     null
   );
+  const [videosNote, setVideosNote] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [hasFile, setHasFile] = useState(false);
@@ -231,6 +232,7 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
     if (!connected) {
       setRealVideos(null);
       setRealHeader(null);
+      setVideosNote(null);
       return;
     }
     try {
@@ -244,11 +246,16 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
           { label: "Videos", value: String(stats.channel.videoCount) },
         ],
       });
-      setRealVideos(
-        (stats.videos as { id: string; title: string; thumbnailUrl: string; views: number; likes: number; comments: number; durationSec: number; publishedAt: string; status: YouTubeVideo["status"] }[]).map(
-          (v) => ({ ...v, thumbSeed: v.id })
-        )
-      );
+      if (Array.isArray(stats.videos)) {
+        setRealVideos(
+          (stats.videos as { id: string; title: string; thumbnailUrl: string; views: number; likes: number; comments: number; durationSec: number; publishedAt: string; status: YouTubeVideo["status"] }[]).map(
+            (v) => ({ ...v, thumbSeed: v.id })
+          )
+        );
+        setVideosNote(null);
+      } else {
+        setVideosNote(stats.videosError ? `No se pudo cargar la lista de videos: ${stats.videosError}` : null);
+      }
     } catch {
       // leave mock data in place if the real fetch fails
     }
@@ -294,6 +301,11 @@ export function YouTubeStudio({ data }: { data: ArtistData }) {
           <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
             {realVideos ? `Videos de ${artist.name} — datos reales de su canal de YouTube.` : `Videos de ${artist.name} — datos de ejemplo hasta conectar la cuenta real de YouTube.`}
           </p>
+          {videosNote && (
+            <p className="mt-1 text-xs" style={{ color: "var(--status-warning)" }}>
+              {videosNote}
+            </p>
+          )}
         </div>
         <div className="flex gap-4 text-sm">
           <div>

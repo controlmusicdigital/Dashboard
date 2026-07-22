@@ -1,7 +1,7 @@
 import { artists } from "./artists";
 import { formatCompact, formatInt, formatPct, formatUSD } from "./format";
 import { mulberry32, randRange } from "./rng";
-import { ArtistData, MonetizationSummary, PlatformId, PlatformSnapshot, TimePoint } from "./types";
+import { ArtistData, PlatformId, PlatformSnapshot, TimePoint } from "./types";
 
 const ANCHOR = new Date("2026-07-20T00:00:00Z");
 
@@ -43,11 +43,6 @@ interface Base {
   distroRevenue: number;
   ascapRoyalties: number;
   bmiRoyalties: number;
-  youtubeAdRevenue: number;
-  tiktokCreatorRevenue: number;
-  igBonusRevenue: number;
-  facebookAdRevenue: number;
-  xAdRevenue: number;
 }
 
 const BASE: Base = {
@@ -61,20 +56,7 @@ const BASE: Base = {
   distroRevenue: 5_400,
   ascapRoyalties: 2_100,
   bmiRoyalties: 1_850,
-  youtubeAdRevenue: 1_450,
-  tiktokCreatorRevenue: 620,
-  igBonusRevenue: 340,
-  facebookAdRevenue: 480,
-  xAdRevenue: 290,
 };
-
-// Scales a platform's existing engagement series (views/reach/impressions) into a
-// daily USD series that sums to `total` — used so the earnings chart has a real
-// day-by-day shape instead of a flat line, without maintaining a second RNG series.
-function monetizationSeries(engagementSeries: TimePoint[], total: number): TimePoint[] {
-  const sum = engagementSeries.reduce((s, p) => s + p.value, 0) || 1;
-  return engagementSeries.map((p) => ({ date: p.date, value: (p.value / sum) * total }));
-}
 
 const TRACK_NAMES = ["Perreo Intenso", "Fuego en la Pista", "Noche de RD", "Bachata del Alma", "Sin Frenos", "Dembow 24/7"];
 const VIDEO_TITLES = ["Video Oficial", "Sesion en Vivo", "Detras de Camaras", "Freestyle", "Visualizer"];
@@ -111,15 +93,6 @@ function buildYoutube(artistId: string, rng: () => number, mult: number): Platfo
   const views30d = subs * randRange(rng, 1.6, 2.6);
   const watchHours = views30d * randRange(rng, 0.045, 0.07);
   const delta = randRange(rng, -3, 13);
-  const viewsSeries = series(rng, views30d / 30, 0.22, delta);
-  const adRevenue = BASE.youtubeAdRevenue * mult * randRange(rng, 0.6, 1.6);
-  const monetization: MonetizationSummary = {
-    label: "YouTube Partner Program",
-    total: adRevenue,
-    deltaPct: randRange(rng, -10, 22),
-    series: monetizationSeries(viewsSeries, adRevenue),
-    nextPayout: "21 ago 2026",
-  };
   return {
     platform: "youtube",
     connected: true,
@@ -128,16 +101,14 @@ function buildYoutube(artistId: string, rng: () => number, mult: number): Platfo
       { label: "Vistas (30d)", value: formatCompact(views30d), deltaPct: randRange(rng, -2, 15) },
       { label: "Horas vistas", value: formatCompact(watchHours), deltaPct: randRange(rng, -2, 11) },
       { label: "Comentarios (30d)", value: formatCompact(views30d * 0.006), deltaPct: randRange(rng, -4, 9) },
-      { label: "Monetizacion (30d)", value: formatUSD(adRevenue), deltaPct: monetization.deltaPct, raw: adRevenue },
     ],
-    series: viewsSeries,
+    series: series(rng, views30d / 30, 0.22, delta),
     seriesLabel: "Vistas por dia",
     topItems: VIDEO_TITLES.slice(0, 4).map((t) => ({
       title: artistId === "max-aventura" ? `${t} - Max` : t,
       metricLabel: "vistas",
       metricValue: formatCompact(views30d * randRange(rng, 0.06, 0.28)),
     })),
-    monetization,
   };
 }
 
@@ -146,15 +117,6 @@ function buildInstagram(rng: () => number, mult: number): PlatformSnapshot {
   const reach30d = followers * randRange(rng, 1.1, 2.1);
   const engagementRate = randRange(rng, 2.5, 6.5);
   const delta = randRange(rng, -2, 9);
-  const followerSeries = series(rng, followers, 0.01, delta * 0.6);
-  const bonusRevenue = BASE.igBonusRevenue * mult * randRange(rng, 0.4, 1.7);
-  const monetization: MonetizationSummary = {
-    label: "Bonos de Instagram",
-    total: bonusRevenue,
-    deltaPct: randRange(rng, -15, 25),
-    series: monetizationSeries(followerSeries, bonusRevenue),
-    nextPayout: "5 ago 2026",
-  };
   return {
     platform: "instagram",
     connected: true,
@@ -163,16 +125,14 @@ function buildInstagram(rng: () => number, mult: number): PlatformSnapshot {
       { label: "Alcance (30d)", value: formatCompact(reach30d), deltaPct: randRange(rng, -3, 14) },
       { label: "Interaccion", value: formatPct(engagementRate), deltaPct: randRange(rng, -8, 8) },
       { label: "Publicaciones (30d)", value: formatInt(randRange(rng, 10, 28)), deltaPct: 0 },
-      { label: "Monetizacion (30d)", value: formatUSD(bonusRevenue), deltaPct: monetization.deltaPct, raw: bonusRevenue },
     ],
-    series: followerSeries,
+    series: series(rng, followers, 0.01, delta * 0.6),
     seriesLabel: "Seguidores acumulados",
     topItems: POST_TYPES.map((t) => ({
       title: t,
       metricLabel: "interacciones",
       metricValue: formatCompact(reach30d * randRange(rng, 0.03, 0.09)),
     })),
-    monetization,
   };
 }
 
@@ -181,15 +141,6 @@ function buildTiktok(rng: () => number, mult: number): PlatformSnapshot {
   const views30d = followers * randRange(rng, 2.5, 5.5);
   const likesTotal = followers * randRange(rng, 3.5, 6.5);
   const delta = randRange(rng, -1, 22);
-  const viewsSeries = series(rng, views30d / 30, 0.3, delta);
-  const creatorRevenue = BASE.tiktokCreatorRevenue * mult * randRange(rng, 0.5, 1.8);
-  const monetization: MonetizationSummary = {
-    label: "TikTok Creator Rewards",
-    total: creatorRevenue,
-    deltaPct: randRange(rng, -12, 30),
-    series: monetizationSeries(viewsSeries, creatorRevenue),
-    nextPayout: "1 ago 2026",
-  };
   return {
     platform: "tiktok",
     connected: true,
@@ -198,16 +149,14 @@ function buildTiktok(rng: () => number, mult: number): PlatformSnapshot {
       { label: "Vistas (30d)", value: formatCompact(views30d), deltaPct: randRange(rng, -4, 26) },
       { label: "Me gusta totales", value: formatCompact(likesTotal), deltaPct: randRange(rng, -2, 14) },
       { label: "Videos publicados (30d)", value: formatInt(randRange(rng, 8, 20)), deltaPct: 0 },
-      { label: "Monetizacion (30d)", value: formatUSD(creatorRevenue), deltaPct: monetization.deltaPct, raw: creatorRevenue },
     ],
-    series: viewsSeries,
+    series: series(rng, views30d / 30, 0.3, delta),
     seriesLabel: "Vistas por dia",
     topItems: VIDEO_TITLES.slice(1, 5).map((t) => ({
       title: t,
       metricLabel: "vistas",
       metricValue: formatCompact(views30d * randRange(rng, 0.07, 0.32)),
     })),
-    monetization,
   };
 }
 
@@ -215,15 +164,6 @@ function buildFacebook(rng: () => number, mult: number): PlatformSnapshot {
   const followers = BASE.fbFollowers * mult * randRange(rng, 0.7, 1.25);
   const reach30d = followers * randRange(rng, 0.6, 1.4);
   const delta = randRange(rng, -3, 7);
-  const reachSeries = series(rng, reach30d / 30, 0.2, delta);
-  const adRevenue = BASE.facebookAdRevenue * mult * randRange(rng, 0.45, 1.6);
-  const monetization: MonetizationSummary = {
-    label: "Anuncios en videos de Facebook",
-    total: adRevenue,
-    deltaPct: randRange(rng, -12, 20),
-    series: monetizationSeries(reachSeries, adRevenue),
-    nextPayout: "21 ago 2026",
-  };
   return {
     platform: "facebook",
     connected: true,
@@ -232,16 +172,14 @@ function buildFacebook(rng: () => number, mult: number): PlatformSnapshot {
       { label: "Alcance (30d)", value: formatCompact(reach30d), deltaPct: randRange(rng, -5, 10) },
       { label: "Interacciones (30d)", value: formatCompact(reach30d * randRange(rng, 0.02, 0.05)), deltaPct: randRange(rng, -6, 9) },
       { label: "Nuevos seguidores (30d)", value: formatCompact(followers * randRange(rng, 0.005, 0.02)), deltaPct: 0 },
-      { label: "Monetizacion (30d)", value: formatUSD(adRevenue), deltaPct: monetization.deltaPct, raw: adRevenue },
     ],
-    series: reachSeries,
+    series: series(rng, reach30d / 30, 0.2, delta),
     seriesLabel: "Alcance por dia",
     topItems: POST_TYPES.map((t) => ({
       title: `${t} de pagina`,
       metricLabel: "alcance",
       metricValue: formatCompact(reach30d * randRange(rng, 0.05, 0.15)),
     })),
-    monetization,
   };
 }
 
@@ -250,15 +188,6 @@ function buildX(rng: () => number, mult: number): PlatformSnapshot {
   const impressions30d = followers * randRange(rng, 3.5, 7);
   const engagementRate = randRange(rng, 1.2, 3.8);
   const delta = randRange(rng, -4, 12);
-  const impressionsSeries = series(rng, impressions30d / 30, 0.28, delta);
-  const adRevenue = BASE.xAdRevenue * mult * randRange(rng, 0.4, 1.7);
-  const monetization: MonetizationSummary = {
-    label: "X Reparto de ingresos por anuncios",
-    total: adRevenue,
-    deltaPct: randRange(rng, -14, 24),
-    series: monetizationSeries(impressionsSeries, adRevenue),
-    nextPayout: "10 ago 2026",
-  };
   return {
     platform: "x",
     connected: true,
@@ -267,16 +196,14 @@ function buildX(rng: () => number, mult: number): PlatformSnapshot {
       { label: "Impresiones (30d)", value: formatCompact(impressions30d), deltaPct: randRange(rng, -6, 20) },
       { label: "Interaccion", value: formatPct(engagementRate), deltaPct: randRange(rng, -8, 8) },
       { label: "Publicaciones (30d)", value: formatInt(randRange(rng, 15, 40)), deltaPct: 0 },
-      { label: "Monetizacion (30d)", value: formatUSD(adRevenue), deltaPct: monetization.deltaPct, raw: adRevenue },
     ],
-    series: impressionsSeries,
+    series: series(rng, impressions30d / 30, 0.28, delta),
     seriesLabel: "Impresiones por dia",
     topItems: TRACK_NAMES.slice(1, 5).map((t) => ({
       title: `Post: ${t}`,
       metricLabel: "impresiones",
       metricValue: formatCompact(impressions30d * randRange(rng, 0.05, 0.2)),
     })),
-    monetization,
   };
 }
 

@@ -50,9 +50,6 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
 
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
-  const [imagePrompt, setImagePrompt] = useState("");
-  const [generatingImage, setGeneratingImage] = useState(false);
-  const [imageError, setImageError] = useState<string | null>(null);
   const [aspect, setAspect] = useState(ASPECTS[0]);
   const [overlayText, setOverlayText] = useState("");
   const [stickerPos, setStickerPos] = useState({ x: 50, y: 80 });
@@ -146,35 +143,6 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
       setError(err instanceof Error ? err.message : "No se pudo generar el contenido");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleGenerateImage() {
-    if (!imagePrompt.trim()) {
-      setImageError("Describe la imagen que quieres generar.");
-      return;
-    }
-    if (STATIC_DEMO) {
-      setImageError(STATIC_DEMO_NOTE);
-      return;
-    }
-    setGeneratingImage(true);
-    setImageError(null);
-    try {
-      const res = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artistId: artist.id, prompt: imagePrompt.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "No se pudo generar la imagen");
-      if (mediaUrl) URL.revokeObjectURL(mediaUrl);
-      setMediaType("image");
-      setMediaUrl(data.dataUrl as string);
-    } catch (err) {
-      setImageError(err instanceof Error ? err.message : "No se pudo generar la imagen");
-    } finally {
-      setGeneratingImage(false);
     }
   }
 
@@ -322,32 +290,6 @@ export function ArtistStudio({ artist }: { artist: Artist }) {
             {mediaUrl ? "Cambiar imagen o video" : "Subir imagen o video"}
             <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFile} />
           </label>
-
-          <div className="flex gap-2">
-            <input
-              value={imagePrompt}
-              onChange={(e) => setImagePrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleGenerateImage();
-              }}
-              placeholder="Describe una imagen para generar con IA..."
-              className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
-              style={{ backgroundColor: "var(--surface-2)", border: "1px solid var(--border-hairline)", color: "var(--text-primary)" }}
-            />
-            <button
-              onClick={handleGenerateImage}
-              disabled={generatingImage}
-              className="shrink-0 rounded-xl px-3.5 py-2 text-sm font-medium disabled:opacity-60"
-              style={{ backgroundColor: "var(--seq-500)", color: "#fff" }}
-            >
-              {generatingImage ? "Generando..." : "Generar imagen"}
-            </button>
-          </div>
-          {imageError && (
-            <p className="-mt-2 text-xs" style={{ color: "var(--status-critical)" }}>
-              {imageError}
-            </p>
-          )}
 
           <input
             value={overlayText}

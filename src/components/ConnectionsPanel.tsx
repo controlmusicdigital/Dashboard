@@ -6,6 +6,14 @@ import { PLATFORM_META, PLATFORM_ORDER, PlatformIcon } from "@/lib/platforms";
 import { connect, disconnect, getConnections, maskToken } from "@/lib/connections";
 import { logActivity } from "@/lib/team";
 
+// YouTube, Instagram and TikTok have their own real OAuth connections in "Estudio de redes
+// sociales" — listing them here too (as a fake, localStorage-only "connection") would just be
+// confusing. Facebook is left out as well since it's the same Meta app as Instagram and isn't
+// wired up for real yet either.
+const MANUAL_CONNECT_PLATFORMS = PLATFORM_ORDER.filter(
+  (p) => p !== "youtube" && p !== "instagram" && p !== "tiktok" && p !== "facebook"
+);
+
 export function ConnectionsPanel({ entity }: { entity: Artist }) {
   const [connections, setConnections] = useState<ReturnType<typeof getConnections>>({});
   const [openPlatform, setOpenPlatform] = useState<string | null>(null);
@@ -54,7 +62,7 @@ export function ConnectionsPanel({ entity }: { entity: Artist }) {
           <span>Estado</span>
         </div>
         <div style={{ backgroundColor: "var(--surface-1)" }}>
-          {PLATFORM_ORDER.map((platform) => {
+          {MANUAL_CONNECT_PLATFORMS.map((platform) => {
             const meta = PLATFORM_META[platform];
             const conn = connections[platform];
             const isOpen = openPlatform === platform;

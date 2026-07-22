@@ -37,6 +37,14 @@ export interface StatField {
   raw?: number;
 }
 
+export interface MonetizationSummary {
+  label: string; // e.g. "YouTube Partner Program"
+  total: number; // USD, last 30 days
+  deltaPct: number;
+  series: TimePoint[]; // daily USD, same length/dates as `series`
+  nextPayout?: string;
+}
+
 export interface PlatformSnapshot {
   platform: PlatformId;
   connected: boolean;
@@ -45,6 +53,7 @@ export interface PlatformSnapshot {
   series: TimePoint[];
   seriesLabel: string;
   topItems: TopItem[];
+  monetization?: MonetizationSummary; // only set for platforms with a real/plausible ad-revenue program
 }
 
 export interface Artist {

@@ -6,9 +6,11 @@ export type PlatformId =
   | "instagram"
   | "tiktok"
   | "facebook"
-  | "x";
+  | "x"
+  | "ascap"
+  | "bmi";
 
-export type PlatformCategory = "publicidad" | "streaming" | "distribucion" | "social";
+export type PlatformCategory = "publicidad" | "streaming" | "distribucion" | "social" | "regalias";
 
 export interface PlatformMeta {
   id: PlatformId;

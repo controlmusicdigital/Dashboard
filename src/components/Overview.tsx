@@ -33,16 +33,21 @@ export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[];
   );
   const totalAdsSpend = sum((d) => d.platforms.googleAds.headline.raw ?? 0);
   const totalDistroRevenue = sum((d) => d.platforms.distrokid.headline.raw ?? 0);
+  const totalRoyalties = sum((d) => (d.platforms.ascap.headline.raw ?? 0) + (d.platforms.bmi.headline.raw ?? 0));
 
   const spotifyDelta = avgDelta((d) => d.platforms.spotify.headline.deltaPct);
   const youtubeDelta = avgDelta((d) => d.platforms.youtube.headline.deltaPct);
   const adsDelta = avgDelta((d) => d.platforms.googleAds.headline.deltaPct);
   const distroDelta = avgDelta((d) => d.platforms.distrokid.headline.deltaPct);
+  const royaltiesDelta = avgDelta((d) => (d.platforms.ascap.headline.deltaPct + d.platforms.bmi.headline.deltaPct) / 2);
 
   const spotifySeries = combinedSeries((d) => d.platforms.spotify.series.map((p) => p.value));
   const youtubeSeries = combinedSeries((d) => d.platforms.youtube.series.map((p) => p.value));
   const adsSeries = combinedSeries((d) => d.platforms.googleAds.series.map((p) => p.value));
   const distroSeries = combinedSeries((d) => d.platforms.distrokid.series.map((p) => p.value));
+  const royaltiesSeries = combinedSeries((d) =>
+    d.platforms.ascap.series.map((p, i) => p.value + (d.platforms.bmi.series[i]?.value ?? 0))
+  );
 
   const comparisonRows = AUDIENCE_PLATFORMS.map(({ id, label }) => {
     const row: Record<string, string | number> = { platform: label };
@@ -89,6 +94,14 @@ export function Overview({ dataList, onSelectArtist }: { dataList: ArtistData[];
             deltaPct={distroDelta}
             series={distroSeries}
             accent="var(--accent-amber)"
+          />
+          <FuturisticKpiCard
+            label="Regalias (ASCAP + BMI)"
+            raw={totalRoyalties}
+            format={formatUSD}
+            deltaPct={royaltiesDelta}
+            series={royaltiesSeries}
+            accent="var(--accent-blue-dr)"
           />
         </div>
       </section>

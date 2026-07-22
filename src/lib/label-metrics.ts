@@ -12,6 +12,11 @@ export function buildLabelMetricsContext(dataList: ArtistData[]): string {
     { label: "Alcance social cruzado", raw: socialReach, format: formatCompact },
     { label: "Inversion en Google Ads", raw: sum((d) => d.platforms.googleAds.headline.raw ?? 0), format: formatUSD },
     { label: "Ingresos brutos DistroKid", raw: sum((d) => d.platforms.distrokid.headline.raw ?? 0), format: formatUSD },
+    {
+      label: "Regalias ASCAP + BMI",
+      raw: sum((d) => (d.platforms.ascap.headline.raw ?? 0) + (d.platforms.bmi.headline.raw ?? 0)),
+      format: formatUSD,
+    },
   ];
   return kpis.map((k) => `${k.label}: ${k.format(k.raw)}`).join(" · ");
 }

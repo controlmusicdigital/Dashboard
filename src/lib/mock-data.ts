@@ -41,6 +41,8 @@ interface Base {
   xFollowers: number;
   adsSpend: number;
   distroRevenue: number;
+  ascapRoyalties: number;
+  bmiRoyalties: number;
 }
 
 const BASE: Base = {
@@ -52,6 +54,8 @@ const BASE: Base = {
   xFollowers: 95_000,
   adsSpend: 3_200,
   distroRevenue: 5_400,
+  ascapRoyalties: 2_100,
+  bmiRoyalties: 1_850,
 };
 
 const TRACK_NAMES = ["Perreo Intenso", "Fuego en la Pista", "Noche de RD", "Bachata del Alma", "Sin Frenos", "Dembow 24/7"];
@@ -257,6 +261,52 @@ function buildDistrokid(rng: () => number, mult: number): PlatformSnapshot {
   };
 }
 
+function buildAscap(rng: () => number, mult: number): PlatformSnapshot {
+  const royalties = BASE.ascapRoyalties * mult * randRange(rng, 0.65, 1.45);
+  const performances = royalties * randRange(rng, 180, 260);
+  const delta = randRange(rng, -8, 18);
+  return {
+    platform: "ascap",
+    connected: true,
+    headline: { label: "Regalias (30d)", value: formatUSD(royalties), deltaPct: delta, raw: royalties },
+    stats: [
+      { label: "Interpretaciones reportadas", value: formatCompact(performances), deltaPct: randRange(rng, -4, 16) },
+      { label: "Obras registradas", value: formatInt(randRange(rng, 8, 40)), deltaPct: 0 },
+      { label: "Proximo pago", value: "10 ago 2026", deltaPct: 0 },
+    ],
+    series: series(rng, royalties / 30, 0.22, delta),
+    seriesLabel: "Regalias por dia (USD)",
+    topItems: TRACK_NAMES.slice(0, 4).map((t) => ({
+      title: t,
+      metricLabel: "regalias",
+      metricValue: formatUSD(royalties * randRange(rng, 0.08, 0.3)),
+    })),
+  };
+}
+
+function buildBmi(rng: () => number, mult: number): PlatformSnapshot {
+  const royalties = BASE.bmiRoyalties * mult * randRange(rng, 0.65, 1.45);
+  const performances = royalties * randRange(rng, 190, 270);
+  const delta = randRange(rng, -8, 18);
+  return {
+    platform: "bmi",
+    connected: true,
+    headline: { label: "Regalias (30d)", value: formatUSD(royalties), deltaPct: delta, raw: royalties },
+    stats: [
+      { label: "Interpretaciones reportadas", value: formatCompact(performances), deltaPct: randRange(rng, -4, 16) },
+      { label: "Obras registradas", value: formatInt(randRange(rng, 8, 40)), deltaPct: 0 },
+      { label: "Proximo pago", value: "15 ago 2026", deltaPct: 0 },
+    ],
+    series: series(rng, royalties / 30, 0.22, delta),
+    seriesLabel: "Regalias por dia (USD)",
+    topItems: TRACK_NAMES.slice(1, 5).map((t) => ({
+      title: t,
+      metricLabel: "regalias",
+      metricValue: formatUSD(royalties * randRange(rng, 0.08, 0.3)),
+    })),
+  };
+}
+
 function buildPlatform(id: PlatformId, artistId: string, rng: () => number, mult: number): PlatformSnapshot {
   switch (id) {
     case "spotify":
@@ -275,10 +325,25 @@ function buildPlatform(id: PlatformId, artistId: string, rng: () => number, mult
       return buildGoogleAds(rng, mult);
     case "distrokid":
       return buildDistrokid(rng, mult);
+    case "ascap":
+      return buildAscap(rng, mult);
+    case "bmi":
+      return buildBmi(rng, mult);
   }
 }
 
-const PLATFORM_IDS: PlatformId[] = ["spotify", "youtube", "instagram", "tiktok", "facebook", "x", "googleAds", "distrokid"];
+const PLATFORM_IDS: PlatformId[] = [
+  "spotify",
+  "youtube",
+  "instagram",
+  "tiktok",
+  "facebook",
+  "x",
+  "googleAds",
+  "distrokid",
+  "ascap",
+  "bmi",
+];
 
 export function buildEntityData(entity: ArtistData["artist"], mult: number): ArtistData {
   const platforms = {} as Record<PlatformId, PlatformSnapshot>;

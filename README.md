@@ -2,7 +2,7 @@
 
 Panel en Next.js para el sello Control Music Digital (Republica Dominicana), con metricas
 de Pacheman, Max y El Real Soprano en un solo lugar: Spotify, YouTube, Instagram, TikTok,
-Facebook, X, Google Ads y DistroKid.
+Facebook, X, Google Ads, DistroKid, ASCAP y BMI.
 
 ## Estado actual
 
@@ -215,14 +215,18 @@ locales, probablemente bloqueando pedidos desde la IP de Vercel.)
 
 ## Conexiones (por artista)
 
-Cada artista tiene una pestana "Conexiones" con la misma tabla de conectores del panel de
-integraciones: Spotify, YouTube, Instagram, TikTok, Facebook, X, Google Ads y DistroKid, cada
-uno con boton "Conectar".
+Cada artista tiene una pestana "Conexiones" con un conector "Conectar" para Spotify, X, Google
+Ads, DistroKid, ASCAP y BMI. (YouTube, Instagram y TikTok no aparecen aqui — esos ya tienen su
+propia conexion OAuth real en "Estudio de redes sociales", ver mas arriba.)
 
 Al conectar, el token de acceso se guarda **solo en ese navegador** (`localStorage`), nunca se
-envia a ningun servidor. Esto deja la conexion lista y marcada como "Conectada" — el siguiente
-paso, cuando quieran, es que las tarjetas de metricas usen ese token para llamar a la API real
-de cada plataforma en lugar de mostrar datos de ejemplo (ver "Proximos pasos" abajo).
+envia a ningun servidor — es una conexion cosmetica, no una integracion real. Para DistroKid,
+ASCAP y BMI esto es deliberado: ninguna de las tres tiene una API publica ni oficial ni con
+documentacion de terceros confiable (a diferencia de YouTube/Instagram/TikTok, que si tienen
+OAuth real), asi que conectar de verdad significaria guardar un token/cookie de sesion extraido
+a mano del navegador o de trafico interceptado — mas riesgo del que vale la pena para una
+conexion que se puede romper en cualquier momento sin aviso. Si alguna de las tres publica una
+API real en el futuro, esta seria la parte a reemplazar.
 
 ## Mi equipo (invitaciones y actividad)
 

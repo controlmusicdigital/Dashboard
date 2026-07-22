@@ -9,6 +9,8 @@ export const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   tiktok: { id: "tiktok", label: "TikTok", category: "social", brandColor: "#25F4EE" },
   facebook: { id: "facebook", label: "Facebook", category: "social", brandColor: "#1877F2" },
   x: { id: "x", label: "X", category: "social", brandColor: "#71767B" },
+  ascap: { id: "ascap", label: "ASCAP", category: "regalias", brandColor: "#003DA5" },
+  bmi: { id: "bmi", label: "BMI", category: "regalias", brandColor: "#DA291C" },
 };
 
 export const PLATFORM_ORDER: PlatformId[] = [
@@ -20,6 +22,8 @@ export const PLATFORM_ORDER: PlatformId[] = [
   "x",
   "googleAds",
   "distrokid",
+  "ascap",
+  "bmi",
 ];
 
 function IconWrap({ children, color }: { children: React.ReactNode; color: string }) {
@@ -119,6 +123,16 @@ export function PlatformIcon({ platform, className }: { platform: PlatformId; cl
         <IconWrap color={color}>
           <svg {...svgProps}>
             <path d="M4 4l16 16M20 4L4 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+        </IconWrap>
+      );
+    case "ascap":
+    case "bmi":
+      return (
+        <IconWrap color={color}>
+          <svg {...svgProps}>
+            <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M8.5 15V9.5a3.5 3.5 0 1 1 3.5 3.5H8.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </IconWrap>
       );

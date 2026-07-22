@@ -9,8 +9,9 @@ import { ArtistCampaigns } from "./ArtistCampaigns";
 import { ConnectionsPanel } from "./ConnectionsPanel";
 import { SocialMediaStudio } from "./SocialMediaStudio";
 import { InvoicesPanel } from "./InvoicesPanel";
+import { EarningsPanel } from "./EarningsPanel";
 
-type SubView = "metrics" | "studio" | "social" | "campaigns" | "invoices" | "connections";
+type SubView = "metrics" | "studio" | "social" | "campaigns" | "earnings" | "invoices" | "connections";
 
 export function ArtistView({ data }: { data: ArtistData }) {
   const { artist } = data;
@@ -49,6 +50,9 @@ export function ArtistView({ data }: { data: ArtistData }) {
           <SubTabButton active={subView === "campaigns"} onClick={() => setSubView("campaigns")}>
             Campanas
           </SubTabButton>
+          <SubTabButton active={subView === "earnings"} onClick={() => setSubView("earnings")}>
+            Ingresos
+          </SubTabButton>
           <SubTabButton active={subView === "invoices"} onClick={() => setSubView("invoices")}>
             Facturas
           </SubTabButton>
@@ -73,6 +77,7 @@ export function ArtistView({ data }: { data: ArtistData }) {
       {subView === "studio" && <ArtistStudio artist={artist} />}
       {subView === "social" && <SocialMediaStudio data={data} />}
       {subView === "campaigns" && <ArtistCampaigns artist={artist} />}
+      {subView === "earnings" && <EarningsPanel data={data} />}
       {subView === "invoices" && <InvoicesPanel artist={artist} />}
       {subView === "connections" && <ConnectionsPanel entity={artist} />}
     </div>

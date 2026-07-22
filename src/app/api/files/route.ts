@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listFiles, saveFile } from "@/lib/file-store";
+import { listFiles, registerFile } from "@/lib/file-store";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
 
 export async function GET() {
-  return NextResponse.json({ files: listFiles() });
+  return NextResponse.json({ files: await listFiles() });
 }
 
+// Called by the client right after a direct browser-to-Blob upload finishes, to record the
+// file's metadata (the bytes themselves already live in Vercel Blob at this point).
 export async function POST(req: NextRequest) {
-  const form = await req.formData().catch(() => null);
-  const file = form?.get("file");
-  const uploadedBy = (form?.get("uploadedBy") as string | null)?.trim() || "Alguien del equipo";
+  const body = await req.json().catch(() => null);
+  const { blobUrl, blobPathname, filename, mimeType, size, uploadedBy } = body ?? {};
 
-  if (!file || !(file instanceof File)) {
-    return NextResponse.json({ error: "No se recibio ningun archivo" }, { status: 400 });
+  if (!blobUrl || !blobPathname || !filename) {
+    return NextResponse.json({ error: "Faltan datos del archivo subido" }, { status: 400 });
   }
 
-  const meta = await saveFile(file, uploadedBy);
+  const meta = await registerFile({
+    filename: String(filename),
+    blobUrl: String(blobUrl),
+    blobPathname: String(blobPathname),
+    mimeType: typeof mimeType === "string" && mimeType ? mimeType : "application/octet-stream",
+    size: Number(size) || 0,
+    uploadedBy: typeof uploadedBy === "string" && uploadedBy.trim() ? uploadedBy.trim() : "Alguien del equipo",
+  });
   return NextResponse.json({ file: meta });
 }

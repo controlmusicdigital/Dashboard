@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { FileMeta } from "@/lib/file-store";
 import { getCurrentUser } from "@/lib/team";
 import { logActivity } from "@/lib/team";
@@ -34,8 +35,10 @@ export function FileShare() {
   const [files, setFiles] = useState<FileMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ name: string; percentage: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function refresh() {
@@ -60,12 +63,30 @@ export function FileShare() {
     const uploadedBy = getCurrentUser();
     try {
       for (const file of Array.from(fileList)) {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("uploadedBy", uploadedBy);
-        const res = await fetch("/api/files", { method: "POST", body: form });
+        setUploadProgress({ name: file.name, percentage: 0 });
+        // Goes straight from this browser to Vercel Blob storage — never passes through our
+        // server, so there's no request-size limit and big files (video, multi-GB archives) work.
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/files/upload-token",
+          multipart: true,
+          onUploadProgress: ({ percentage }) => setUploadProgress({ name: file.name, percentage }),
+        });
+
+        const res = await fetch("/api/files", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            blobUrl: blob.url,
+            blobPathname: blob.pathname,
+            filename: file.name,
+            mimeType: file.type,
+            size: file.size,
+            uploadedBy,
+          }),
+        });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || `No se pudo subir ${file.name}`);
+        if (!res.ok) throw new Error(data?.error || `No se pudo registrar ${file.name}`);
         logActivity(`subio un archivo`, "files", "Archivos", file.name.slice(0, 60));
       }
       await refresh();
@@ -73,6 +94,7 @@ export function FileShare() {
       setError(err instanceof Error ? err.message : "No se pudo subir el archivo");
     } finally {
       setUploading(false);
+      setUploadProgress(null);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -80,6 +102,17 @@ export function FileShare() {
   async function handleDelete(id: string) {
     await fetch(`/api/files/${id}`, { method: "DELETE" });
     setFiles((prev) => prev.filter((f) => f.id !== id));
+  }
+
+  async function handleCopyLink(id: string) {
+    const link = `${window.location.origin}/api/files/${id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch {
+      setError("No se pudo copiar el enlace.");
+    }
   }
 
   return (
@@ -90,9 +123,9 @@ export function FileShare() {
         </h2>
         <p className="mt-1 max-w-2xl text-xs" style={{ color: "var(--text-muted)" }}>
           Sube videos, fotos o documentos para compartir con el equipo — se guardan tal cual, byte por byte, sin
-          comprimir ni recodificar, asi que no pierden calidad. Se guardan en el disco de este servidor; si el panel
-          se despliega en un hosting sin disco persistente (ej. serverless), va a hacer falta un servicio de
-          almacenamiento real (S3, Vercel Blob) para que los archivos sobrevivan entre despliegues.
+          comprimir ni recodificar, asi que no pierden calidad. El archivo va directo del navegador a Vercel Blob
+          (hasta 5 TB), asi que los archivos grandes tambien funcionan. Cada archivo tiene un boton &ldquo;Copiar
+          enlace&rdquo; para mandarlo a tu equipo — cualquiera con el enlace puede descargarlo, sin necesitar cuenta.
         </p>
       </div>
 
@@ -130,9 +163,9 @@ export function FileShare() {
       >
         <span className="text-2xl">⬆️</span>
         <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-          {uploading ? "Subiendo..." : "Arrastra archivos aqui o haz clic para elegir"}
+          {uploadProgress ? `Subiendo ${uploadProgress.name}... ${uploadProgress.percentage}%` : "Arrastra archivos aqui o haz clic para elegir"}
         </span>
-        <span className="text-xs">Video, fotos, PDF, lo que sea</span>
+        <span className="text-xs">Video, fotos, PDF, lo que sea — sin limite de tamano practico</span>
         <input
           ref={inputRef}
           type="file"
@@ -181,6 +214,13 @@ export function FileShare() {
                 </div>
               </div>
               <div className="flex flex-shrink-0 gap-2">
+                <button
+                  onClick={() => handleCopyLink(f.id)}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold"
+                  style={{ backgroundColor: "var(--seq-500)", color: "#fff" }}
+                >
+                  {copiedId === f.id ? "Copiado" : "Copiar enlace"}
+                </button>
                 <a
                   href={`/api/files/${f.id}`}
                   className="rounded-full px-3 py-1.5 text-xs font-semibold"

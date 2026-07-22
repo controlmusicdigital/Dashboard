@@ -1,6 +1,6 @@
 import "server-only";
 import crypto from "crypto";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 
 const STATE_SECRET = process.env.AUTH_SECRET || "cmd-dev-insecure-secret-change-me";
 
@@ -21,16 +21,6 @@ export function isInstagramOAuthConfigured(): boolean {
 
 // Same Redis (Upstash, via the Vercel Marketplace integration) already used for YouTube tokens,
 // just a different key namespace — no new database needed.
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
-    if (!url || !token) throw new Error("KV_REST_API_URL / KV_REST_API_TOKEN no estan configuradas");
-    redisClient = new Redis({ url, token });
-  }
-  return redisClient;
-}
 
 function redisKey(artistId: string): string {
   return `instagram-tokens:${artistId}`;

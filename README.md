@@ -153,13 +153,18 @@ en la actividad de "Mi equipo".
 ## Archivos (compartir videos y archivos sin perder calidad)
 
 Pestana "Archivos" (nivel general): arrastra o elige videos, fotos o documentos para compartirlos
-con el equipo. Esto **si es real** — el archivo se guarda tal cual llega, byte por byte, sin
-comprimir ni recodificar (verificado con hash SHA-256 antes/despues: identico), y "Descargar" trae
-exactamente el mismo archivo. Se sirve desde `src/lib/file-store.ts` (servidor) y se guarda en
-`.data/shared-files/` en el disco de esta maquina — por eso funciona mientras el panel corra como
-proceso persistente (como ahora), pero **no sobrevive un redeploy en un hosting serverless** (ej.
-Vercel) sin agregar un servicio de almacenamiento real (S3, Vercel Blob, etc.), que seria el
-siguiente paso para que los archivos queden disponibles de forma permanente.
+con el equipo. Esto **si es real** — el archivo se sube directo del navegador a Vercel Blob (nunca
+pasa por nuestro servidor), byte por byte, sin comprimir ni recodificar, asi que no hay limite de
+tamano practico (hasta 5 TB) ni riesgo de perder calidad. Cada archivo tiene un boton "Copiar
+enlace" — ese enlace (`/api/files/<id>`, que redirige al archivo real en Blob) lo puede abrir
+cualquiera con el link, sin necesitar cuenta ni iniciar sesion, ideal para mandarlo al equipo por
+WhatsApp o donde sea.
+
+La metadata (nombre, tamano, quien lo subio) vive en el mismo Redis que las conexiones de
+YouTube/Instagram/TikTok (`src/lib/file-store.ts`); los bytes viven en Vercel Blob. Para
+activarlo, agrega un store de tipo "Blob" desde el Marketplace de Vercel (Project > Storage >
+Create Database) — instrucciones completas en `.env.local.example` junto a
+`BLOB_READ_WRITE_TOKEN`.
 
 ## Campanas publicitarias (Google Ads, Instagram, TikTok, Facebook, YouTube, X)
 

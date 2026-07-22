@@ -1,6 +1,6 @@
 import "server-only";
 import crypto from "crypto";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 
 const STATE_SECRET = process.env.AUTH_SECRET || "cmd-dev-insecure-secret-change-me";
 
@@ -21,16 +21,6 @@ export function isYouTubeOAuthConfigured(): boolean {
 // shared across every device/browser that logs into that artist's or the admin's session,
 // unlike a cookie (tied to one browser) or a server-side file (Vercel's serverless filesystem
 // is read-only in production, so per-invocation file writes aren't reliably visible later).
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
-    if (!url || !token) throw new Error("KV_REST_API_URL / KV_REST_API_TOKEN no estan configuradas");
-    redisClient = new Redis({ url, token });
-  }
-  return redisClient;
-}
 
 function redisKey(artistId: string): string {
   return `youtube-tokens:${artistId}`;

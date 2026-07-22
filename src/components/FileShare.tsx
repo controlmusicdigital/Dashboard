@@ -105,7 +105,7 @@ export function FileShare() {
   }
 
   async function handleCopyLink(id: string) {
-    const link = `${window.location.origin}/api/files/${id}`;
+    const link = `${window.location.origin}/files/${id}`;
     try {
       await navigator.clipboard.writeText(link);
       setCopiedId(id);

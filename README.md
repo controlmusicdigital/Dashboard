@@ -306,6 +306,21 @@ El nucleo lee la fuente real de cada respuesta (header `X-Copilot-Source`) para 
 ejemplo como si fuera de Gemini. Cualquier componente puede mandarle un prompt pre-armado desde cualquier
 parte de la pagina (`src/lib/neural-state.tsx`).
 
+## Facturas (cobrar con tarjeta internacional, via Stripe)
+
+Cada artista tiene una pestana "Facturas": escribe un correo, una descripcion, un monto y los
+dias para pagar, y le manda una factura real por correo. El artista paga con tarjeta de debito o
+credito (cualquier pais) desde una pagina segura alojada por Stripe — este servidor nunca ve ni
+guarda el numero de tarjeta, y el dinero se deposita directo a la cuenta bancaria que conectes en
+tu cuenta de Stripe. Cada factura queda registrada en la lista, con su estado real (Pendiente de
+pago / Pagada / Anulada) y un boton para verla o anularla.
+
+Esto **si es real** — usa la API de Facturas de Stripe (`src/lib/stripe.ts`, `src/lib/invoices.ts`,
+`stripe.invoices` y `stripe.invoiceItems`). Para activarlo: crea una cuenta en Stripe, conecta tu
+cuenta bancaria para los depositos (Balance > Payouts en el dashboard de Stripe), y copia tu
+"Secret key" — instrucciones completas en `.env.local.example` junto a `STRIPE_SECRET_KEY`. La
+relacion artista → cliente de Stripe se guarda en el mismo Redis que las demas conexiones.
+
 ## Cuentas de acceso (login por artista)
 
 Por defecto el panel sigue tan abierto como siempre — cualquiera con el link ve todo. En cuanto

@@ -171,24 +171,25 @@ igual que el resto de integraciones pendientes.
 
 ## Noticias y farandula (RSS/HTML directo de una lista fija de sitios)
 
-Pestana "Noticias" (nivel sello, junto a "Resumen general"): trae titulares reales de 14 fuentes
+Pestana "Noticias" (nivel sello, junto a "Resumen general"): trae titulares reales de 13 fuentes
 dominicanas curadas a mano — nada de busqueda con IA, asi que solo puede aparecer contenido de
 esos sitios exactos. La lista completa vive en `src/lib/news-sources.ts`, agrupada en 4
 categorias (con pestanas para filtrar en la interfaz):
 
-- **Nacional**: Listin Diario, Diario Libre, El Caribe, El Nacional, Hoy
+- **Nacional**: Listin Diario, Diario Libre, El Nacional, Hoy
 - **Ultima hora**: Noticias SIN, Al Momento, Acento, De Ultimo Minuto
 - **Farandula**: MasVip, Luminarias TV, Listin Diario Entretenimiento, Diario Libre Revista
 - **English**: Dominican Today
 
-La mayoria se leen de su feed RSS (`src/lib/news-rss.ts`, via `fast-xml-parser`). El Caribe y
-Acento no exponen RSS, asi que esos dos se leen directo de su pagina de inicio
-(`src/lib/news-scrape.ts`, via `cheerio`) buscando los titulares por su selector CSS. Todo se
-combina y ordena por fecha en `src/lib/news-fetch.ts` — no hace falta ninguna API key para que
-esto funcione.
+La mayoria se leen de su feed RSS (`src/lib/news-rss.ts`, via `fast-xml-parser`). Acento no
+expone RSS, asi que se lee directo de su pagina de inicio (`src/lib/news-scrape.ts`, via
+`cheerio`) buscando los titulares por su selector CSS. Todo se combina y ordena por fecha en
+`src/lib/news-fetch.ts` — no hace falta ninguna API key para que esto funcione.
 
 (Alofoke Media Group estaba en la lista original pero su dominio `alofokeradioshow.com` resulto
-ser un dominio expirado/parkeado, no su sitio real — se quedo afuera hasta tener la URL correcta.)
+ser un dominio expirado/parkeado, no su sitio real — se quedo afuera hasta tener la URL correcta.
+El Caribe tambien se quito: su pagina empezo a fallar en produccion aunque funcionaba en pruebas
+locales, probablemente bloqueando pedidos desde la IP de Vercel.)
 
 - Se actualiza sola cada hora mientras el panel este abierto en el navegador, y tiene un
   boton "Actualizar ahora" para forzar una recarga.

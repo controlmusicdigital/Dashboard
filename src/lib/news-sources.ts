@@ -33,14 +33,6 @@ export const NEWS_SOURCES: NewsSource[] = [
   // Mainstream & national breaking news
   { id: "listindiario", label: "Listin Diario", category: "nacional", type: "rss", url: "https://listindiario.com/rss/home.xml" },
   { id: "diariolibre", label: "Diario Libre", category: "nacional", type: "rss", url: "https://www.diariolibre.com/rss/portada.xml" },
-  {
-    id: "elcaribe",
-    label: "El Caribe",
-    category: "nacional",
-    type: "scrape",
-    url: "https://www.elcaribe.com.do",
-    selector: ".entry-title a",
-  },
   { id: "elnacional", label: "El Nacional", category: "nacional", type: "rss", url: "https://elnacional.com.do/rss/home.xml" },
   { id: "hoy", label: "Hoy", category: "nacional", type: "rss", url: "https://hoy.com.do/rss/home.xml" },
 

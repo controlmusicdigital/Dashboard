@@ -2,6 +2,7 @@ import "server-only";
 import { NEWS_SOURCES, NewsSource } from "./news-sources";
 import { fetchRssItems } from "./news-rss";
 import { fetchScrapedHeadlines } from "./news-scrape";
+import { fetchWpJsonItems } from "./news-wpjson";
 import { mockNews } from "./claude/news-mock";
 import { NewsItem, NewsResult } from "./news-types";
 
@@ -9,7 +10,9 @@ async function fetchSource(source: NewsSource): Promise<NewsItem[]> {
   const raw =
     source.type === "rss"
       ? await fetchRssItems(source.url, source.label)
-      : await fetchScrapedHeadlines(source.url, source.selector, source.label);
+      : source.type === "wp-json"
+        ? await fetchWpJsonItems(source.apiBase, source.label)
+        : await fetchScrapedHeadlines(source.url, source.selector, source.label);
   return raw.map((item) => ({ ...item, category: source.category }));
 }
 

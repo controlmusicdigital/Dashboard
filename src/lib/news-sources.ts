@@ -25,7 +25,17 @@ interface ScrapeSource {
   selector: string;
 }
 
-export type NewsSource = RssSource | ScrapeSource;
+interface WpJsonSource {
+  id: string;
+  label: string;
+  category: NewsCategory;
+  type: "wp-json";
+  // Site root — the WordPress REST API lives at <apiBase>/wp-json/wp/v2/posts. Used instead of
+  // RSS for WordPress sites whose feed doesn't carry a featured image.
+  apiBase: string;
+}
+
+export type NewsSource = RssSource | ScrapeSource | WpJsonSource;
 
 // Fixed, user-curated list of Dominican news sites — no AI search involved. Each site is
 // fetched directly (RSS feed when the site has one, otherwise a homepage scrape) and merged.
@@ -38,13 +48,13 @@ export const NEWS_SOURCES: NewsSource[] = [
 
   // Fast digital portals & broadcast news
   { id: "noticiassin", label: "Noticias SIN", category: "rapido", type: "rss", url: "https://noticiassin.com/feed/" },
-  { id: "almomento", label: "Al Momento", category: "rapido", type: "rss", url: "https://almomento.net/feed/" },
+  { id: "almomento", label: "Al Momento", category: "rapido", type: "wp-json", apiBase: "https://almomento.net" },
   { id: "acento", label: "Acento", category: "rapido", type: "scrape", url: "https://acento.com.do", selector: ".entry-title a" },
-  { id: "deultimominuto", label: "De Ultimo Minuto", category: "rapido", type: "rss", url: "https://deultimominuto.net/feed/" },
+  { id: "deultimominuto", label: "De Ultimo Minuto", category: "rapido", type: "wp-json", apiBase: "https://deultimominuto.net" },
 
   // Entertainment, showbiz & urban culture (farandula)
-  { id: "masvip", label: "MasVip", category: "farandula", type: "rss", url: "https://masvip.com.do/feed/" },
-  { id: "luminariastv", label: "Luminarias TV", category: "farandula", type: "rss", url: "https://luminariastv.com/feed/" },
+  { id: "masvip", label: "MasVip", category: "farandula", type: "wp-json", apiBase: "https://masvip.com.do" },
+  { id: "luminariastv", label: "Luminarias TV", category: "farandula", type: "wp-json", apiBase: "https://luminariastv.com" },
   {
     id: "listindiario-entretenimiento",
     label: "Listin Diario Entretenimiento",
@@ -61,5 +71,5 @@ export const NEWS_SOURCES: NewsSource[] = [
   },
 
   // English-language
-  { id: "dominicantoday", label: "Dominican Today", category: "ingles", type: "rss", url: "https://dominicantoday.com/feed/" },
+  { id: "dominicantoday", label: "Dominican Today", category: "ingles", type: "wp-json", apiBase: "https://dominicantoday.com" },
 ];

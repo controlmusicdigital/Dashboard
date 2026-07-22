@@ -2,7 +2,7 @@ import "server-only";
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 import { NewsItem } from "./news-types";
-import { NEWS_FETCH_HEADERS, cleanText } from "./news-text";
+import { NEWS_FETCH_HEADERS, cleanText, fetchOgImage } from "./news-text";
 
 // Sites with no RSS feed at all (El Caribe, Acento) — parse headlines straight out of the
 // homepage HTML instead. There's no reliable per-article publish time on a homepage listing, so
@@ -15,7 +15,7 @@ export async function fetchScrapedHeadlines(
   sourceLabel: string,
   maxItems = 6
 ): Promise<NewsItem[]> {
-  const res = await fetch(pageUrl, { headers: NEWS_FETCH_HEADERS });
+  const res = await fetch(pageUrl, { headers: NEWS_FETCH_HEADERS, cache: "no-store" });
   if (!res.ok) throw new Error(`${sourceLabel} respondio ${res.status}`);
   const html = await res.text();
   const $ = cheerio.load(html);
@@ -43,6 +43,13 @@ export async function fetchScrapedHeadlines(
       imageUrl: findNearbyImage($, el),
     });
   });
+
+  // The homepage card had no nearby <img> for these — fall back to the article's og:image.
+  await Promise.all(
+    items.map(async (item) => {
+      if (!item.imageUrl) item.imageUrl = await fetchOgImage(item.url);
+    })
+  );
 
   return items;
 }

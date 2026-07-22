@@ -1,7 +1,7 @@
 import "server-only";
 import { XMLParser } from "fast-xml-parser";
 import { NewsItem } from "./news-types";
-import { NEWS_FETCH_HEADERS, cleanText, relativeTime } from "./news-text";
+import { NEWS_FETCH_HEADERS, cleanText, fetchOgImage, relativeTime } from "./news-text";
 
 // parseTagValue:false keeps every field a plain string — otherwise fast-xml-parser tries to
 // coerce numeric-looking text (a headline that's just a number, an all-digit guid) into a JS
@@ -65,7 +65,9 @@ function extractImage(item: RawRssItem): string | undefined {
 }
 
 export async function fetchRssItems(feedUrl: string, sourceLabel: string, maxItems = 6): Promise<NewsItem[]> {
-  const res = await fetch(feedUrl, { headers: NEWS_FETCH_HEADERS });
+  // cache: "no-store" — without it, Next's fetch Data Cache freezes the first response it ever
+  // sees for this URL and keeps serving it, so the feed would never actually update.
+  const res = await fetch(feedUrl, { headers: NEWS_FETCH_HEADERS, cache: "no-store" });
   if (!res.ok) throw new Error(`${sourceLabel} respondio ${res.status}`);
   const xml = await res.text();
   const data = parser.parse(xml);
@@ -74,23 +76,30 @@ export async function fetchRssItems(feedUrl: string, sourceLabel: string, maxIte
   const rawItems: RawRssItem[] = channel?.item ?? channel?.entry ?? [];
   const list = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
 
-  return list
-    .slice(0, maxItems)
-    .map((item): NewsItem | null => {
-      const title = cleanText(textOf(item.title));
-      const url = textOf(item.link).trim();
-      if (!title || !url) return null;
-      const pubDate = textOf(item.pubDate);
-      const date = pubDate ? new Date(pubDate) : new Date();
-      return {
-        title,
-        summary: cleanText(textOf(item.description), 200),
-        source: sourceLabel,
-        url,
-        publishedAt: relativeTime(date),
-        publishedAtMs: isNaN(date.getTime()) ? 0 : date.getTime(),
-        imageUrl: extractImage(item),
-      };
+  const items = list.slice(0, maxItems).map((item): NewsItem | null => {
+    const title = cleanText(textOf(item.title));
+    const url = textOf(item.link).trim();
+    if (!title || !url) return null;
+    const pubDate = textOf(item.pubDate);
+    const date = pubDate ? new Date(pubDate) : new Date();
+    return {
+      title,
+      summary: cleanText(textOf(item.description), 200),
+      source: sourceLabel,
+      url,
+      publishedAt: relativeTime(date),
+      publishedAtMs: isNaN(date.getTime()) ? 0 : date.getTime(),
+      imageUrl: extractImage(item),
+    };
+  });
+
+  // The feed itself carried no image for these — fall back to reading og:image off the article
+  // page (e.g. Noticias SIN's RSS never includes a thumbnail).
+  await Promise.all(
+    items.map(async (item) => {
+      if (item && !item.imageUrl) item.imageUrl = await fetchOgImage(item.url);
     })
-    .filter((i): i is NewsItem => i !== null);
+  );
+
+  return items.filter((i): i is NewsItem => i !== null);
 }

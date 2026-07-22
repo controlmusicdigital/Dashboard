@@ -38,3 +38,24 @@ export const NEWS_FETCH_HEADERS: HeadersInit = {
   Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   "Accept-Language": "es-DO,es;q=0.9",
 };
+
+// Last-resort image lookup for the handful of items where the feed/scrape has no usable image
+// (e.g. Noticias SIN's RSS carries no thumbnail at all, and its wp-json API 403s) — fetches the
+// article page itself and reads its og:image/twitter:image meta tag. Bounded to 8s so one slow
+// article page can't stall the whole /api/news response.
+export async function fetchOgImage(articleUrl: string): Promise<string | undefined> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(articleUrl, { headers: NEWS_FETCH_HEADERS, cache: "no-store", signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return undefined;
+    const html = await res.text();
+    const match =
+      /<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/i.exec(html) ??
+      /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/i.exec(html);
+    return match?.[1];
+  } catch {
+    return undefined;
+  }
+}

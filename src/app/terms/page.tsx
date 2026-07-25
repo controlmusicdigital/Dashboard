@@ -11,7 +11,7 @@ export default function TermsPage() {
       <p className="text-sm" style={{ color: "var(--text-muted)" }}>Última actualización: julio de 2026</p>
 
       <p>
-        Este panel ("Control Music Digital Dashboard") es una herramienta interna de gestión de artistas, propiedad
+        Este panel (&quot;Control Music Digital Dashboard&quot;) es una herramienta interna de gestión de artistas, propiedad
         de y operada por Control Music Digital, un sello discográfico independiente con sede en Santo Domingo,
         República Dominicana. Su uso está limitado al personal del sello y a los artistas de su roster.
       </p>
@@ -39,7 +39,7 @@ export default function TermsPage() {
 
       <h2 className="text-lg font-semibold">Disponibilidad</h2>
       <p>
-        El panel se ofrece "tal cual", sin garantías de disponibilidad continua. Control Music Digital puede
+        El panel se ofrece &quot;tal cual&quot;, sin garantías de disponibilidad continua. Control Music Digital puede
         modificar, suspender o discontinuar funciones del panel en cualquier momento.
       </p>
 

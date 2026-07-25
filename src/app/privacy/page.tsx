@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <p className="text-sm" style={{ color: "var(--text-muted)" }}>Última actualización: julio de 2026</p>
 
       <p>
-        Este panel ("Control Music Digital Dashboard") es una herramienta interna de gestión de artistas usada por
+        Este panel (&quot;Control Music Digital Dashboard&quot;) es una herramienta interna de gestión de artistas usada por
         Control Music Digital, un sello discográfico independiente con sede en Santo Domingo, República Dominicana,
         y por los artistas de su roster. No es una aplicación pública ni de consumo masivo.
       </p>
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       <h2 className="text-lg font-semibold">Cómo desconectar tu cuenta</h2>
       <p>
         Cualquier artista puede desconectar su cuenta de YouTube, Instagram o TikTok en cualquier momento desde su
-        propio panel ("Estudio de redes sociales" → botón "Desconectar"), lo que elimina inmediatamente el token
+        propio panel (&quot;Estudio de redes sociales&quot; → botón &quot;Desconectar&quot;), lo que elimina inmediatamente el token
         guardado. También puedes revocar el acceso directamente desde la configuración de la app en tu cuenta de
         Google, Instagram/Meta o TikTok.
       </p>
